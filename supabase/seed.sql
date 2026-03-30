@@ -1,3 +1,35 @@
+insert into auth.users (
+  instance_id,
+  id,
+  aud,
+  role,
+  email,
+  email_confirmed_at,
+  raw_app_meta_data,
+  raw_user_meta_data,
+  created_at,
+  updated_at,
+  is_sso_user,
+  is_anonymous
+)
+values
+  ('00000000-0000-0000-0000-000000000000', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1', 'authenticated', 'authenticated', 'leah@embercollective.co', now(), '{"provider":"email","providers":["email"]}', '{}', now(), now(), false, false),
+  ('00000000-0000-0000-0000-000000000000', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', 'authenticated', 'authenticated', 'harvey@harbourlive.co', now(), '{"provider":"email","providers":["email"]}', '{}', now(), now(), false, false),
+  ('00000000-0000-0000-0000-000000000000', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa3', 'authenticated', 'authenticated', 'nadia@novaoccasions.co', now(), '{"provider":"email","providers":["email"]}', '{}', now(), now(), false, false),
+  ('00000000-0000-0000-0000-000000000000', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbb001', 'authenticated', 'authenticated', 'ava.morgan@demo.staffbook.app', now(), '{"provider":"email","providers":["email"]}', '{}', now(), now(), false, false),
+  ('00000000-0000-0000-0000-000000000000', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbb002', 'authenticated', 'authenticated', 'theo.carter@demo.staffbook.app', now(), '{"provider":"email","providers":["email"]}', '{}', now(), now(), false, false),
+  ('00000000-0000-0000-0000-000000000000', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbb003', 'authenticated', 'authenticated', 'mia.wallace@demo.staffbook.app', now(), '{"provider":"email","providers":["email"]}', '{}', now(), now(), false, false),
+  ('00000000-0000-0000-0000-000000000000', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbb004', 'authenticated', 'authenticated', 'noah.reed@demo.staffbook.app', now(), '{"provider":"email","providers":["email"]}', '{}', now(), now(), false, false),
+  ('00000000-0000-0000-0000-000000000000', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbb005', 'authenticated', 'authenticated', 'ella.james@demo.staffbook.app', now(), '{"provider":"email","providers":["email"]}', '{}', now(), now(), false, false),
+  ('00000000-0000-0000-0000-000000000000', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbb006', 'authenticated', 'authenticated', 'lucas.bennett@demo.staffbook.app', now(), '{"provider":"email","providers":["email"]}', '{}', now(), now(), false, false),
+  ('00000000-0000-0000-0000-000000000000', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbb007', 'authenticated', 'authenticated', 'grace.patel@demo.staffbook.app', now(), '{"provider":"email","providers":["email"]}', '{}', now(), now(), false, false),
+  ('00000000-0000-0000-0000-000000000000', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbb008', 'authenticated', 'authenticated', 'ethan.green@demo.staffbook.app', now(), '{"provider":"email","providers":["email"]}', '{}', now(), now(), false, false),
+  ('00000000-0000-0000-0000-000000000000', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbb009', 'authenticated', 'authenticated', 'lily.adams@demo.staffbook.app', now(), '{"provider":"email","providers":["email"]}', '{}', now(), now(), false, false),
+  ('00000000-0000-0000-0000-000000000000', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbb010', 'authenticated', 'authenticated', 'archie.scott@demo.staffbook.app', now(), '{"provider":"email","providers":["email"]}', '{}', now(), now(), false, false),
+  ('00000000-0000-0000-0000-000000000000', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbb011', 'authenticated', 'authenticated', 'chloe.ross@demo.staffbook.app', now(), '{"provider":"email","providers":["email"]}', '{}', now(), now(), false, false),
+  ('00000000-0000-0000-0000-000000000000', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbb012', 'authenticated', 'authenticated', 'freddie.hall@demo.staffbook.app', now(), '{"provider":"email","providers":["email"]}', '{}', now(), now(), false, false)
+on conflict (id) do nothing;
+
 insert into public.organizations (id, name, slug)
 values
   ('11111111-1111-1111-1111-111111111111', 'Ember Collective', 'ember-collective'),

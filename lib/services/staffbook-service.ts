@@ -45,16 +45,28 @@ export async function getPublicHighlights(): Promise<LandingHighlights> {
   }
 
   const client = createServiceRoleClient();
-  const [jobsResult, staffResult] = await Promise.all([
+  const [jobsResult, staffResult, organiserCountResult, staffCountResult, placementsResult] = await Promise.all([
     client
       .from("jobs")
       .select("*, events(*), organizations(*), applications(id)")
       .eq("status", "open")
       .limit(4),
-    client.from("ranked_staff").select("*").limit(4)
+    client.from("ranked_staff").select("*").limit(4),
+    client.from("profiles").select("id", { count: "exact", head: true }).eq("role", "organiser"),
+    client.from("profiles").select("id", { count: "exact", head: true }).eq("role", "staff"),
+    client
+      .from("applications")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "accepted")
   ]);
 
-  if (jobsResult.error || staffResult.error) {
+  if (
+    jobsResult.error ||
+    staffResult.error ||
+    organiserCountResult.error ||
+    staffCountResult.error ||
+    placementsResult.error
+  ) {
     return buildPublicDemoHighlights();
   }
 
@@ -98,12 +110,38 @@ export async function getPublicHighlights(): Promise<LandingHighlights> {
       },
       applicationCount: Array.isArray(row.applications) ? row.applications.length : 0
     })),
-    topStaff: (staffResult.data ?? []) as RankedStaffRow[],
+    topStaff: (staffResult.data ?? []).map((row) => ({
+      staffId: String(row.staff_id),
+      averageRating: Number(row.average_rating ?? 0),
+      reviewCount: Number(row.review_count ?? 0),
+      weightedScore: Number(row.weighted_score ?? 0),
+      rank: Number(row.rank ?? 0),
+      topBadge:
+        Number(row.rank) === 1
+          ? "Top Rated"
+          : Number(row.rank) <= 3
+            ? "Reliable"
+            : Number(row.rank) <= 6
+              ? "Rising"
+              : undefined,
+      profile: {
+        id: String(row.staff_id),
+        role: "staff",
+        fullName: String(row.full_name),
+        email: String(row.email ?? ""),
+        phone: row.phone ? String(row.phone) : undefined,
+        bio: row.bio ? String(row.bio) : undefined,
+        skills: Array.isArray(row.skills) ? row.skills.map(String) : [],
+        availability: row.availability ? String(row.availability) : undefined,
+        avatarUrl: row.avatar_url ? String(row.avatar_url) : undefined,
+        createdAt: new Date().toISOString()
+      }
+    })),
     stats: {
       activeJobs: jobsResult.data?.length ?? 0,
-      organisers: 0,
-      staff: 0,
-      placements: 0
+      organisers: organiserCountResult.count ?? 0,
+      staff: staffCountResult.count ?? 0,
+      placements: placementsResult.count ?? 0
     }
   };
 }
@@ -113,7 +151,55 @@ export async function getPublicJobs() {
     return buildPublicDemoJobs();
   }
 
-  return buildPublicDemoJobs();
+  const client = createServiceRoleClient();
+  const jobsResult = await client
+    .from("jobs")
+    .select("*, events(*), organizations(*), applications(id)")
+    .eq("status", "open");
+
+  if (jobsResult.error) {
+    return buildPublicDemoJobs();
+  }
+
+  return (jobsResult.data ?? []).map((row) => ({
+    id: String(row.id),
+    eventId: String(row.event_id),
+    organizationId: String(row.organization_id),
+    createdBy: String(row.created_by),
+    title: String(row.title),
+    description: String(row.description ?? ""),
+    roleType: String(row.role_type ?? ""),
+    shiftStart: String(row.shift_start),
+    shiftEnd: String(row.shift_end),
+    payRate: Number(row.pay_rate ?? 0),
+    positionsNeeded: Number(row.positions_needed ?? 1),
+    status: row.status as EnrichedJob["status"],
+    createdAt: String(row.created_at),
+    updatedAt: String(row.updated_at),
+    event: {
+      id: String((row.events as Record<string, unknown>).id),
+      organizationId: String((row.events as Record<string, unknown>).organization_id),
+      createdBy: String((row.events as Record<string, unknown>).created_by),
+      title: String((row.events as Record<string, unknown>).title),
+      description: String((row.events as Record<string, unknown>).description ?? ""),
+      location: String((row.events as Record<string, unknown>).location ?? ""),
+      eventDate: String((row.events as Record<string, unknown>).event_date),
+      eventType: String((row.events as Record<string, unknown>).event_type ?? ""),
+      requiredRoles: Array.isArray((row.events as Record<string, unknown>).required_roles)
+        ? ((row.events as Record<string, unknown>).required_roles as string[])
+        : [],
+      status: (row.events as Record<string, unknown>).status as EnrichedJob["event"]["status"],
+      createdAt: String((row.events as Record<string, unknown>).created_at),
+      updatedAt: String((row.events as Record<string, unknown>).updated_at)
+    },
+    organization: {
+      id: String((row.organizations as Record<string, unknown>).id),
+      name: String((row.organizations as Record<string, unknown>).name),
+      slug: String((row.organizations as Record<string, unknown>).slug),
+      createdAt: String((row.organizations as Record<string, unknown>).created_at)
+    },
+    applicationCount: Array.isArray(row.applications) ? row.applications.length : 0
+  }));
 }
 
 export async function getPublicRankedStaff(): Promise<RankedStaffRow[]> {
@@ -125,5 +211,38 @@ export async function getPublicRankedStaff(): Promise<RankedStaffRow[]> {
     );
   }
 
-  return getPublicHighlights().then((payload) => payload.topStaff);
+  const client = createServiceRoleClient();
+  const staffResult = await client.from("ranked_staff").select("*");
+
+  if (staffResult.error) {
+    return getPublicHighlights().then((payload) => payload.topStaff);
+  }
+
+  return (staffResult.data ?? []).map((row) => ({
+    staffId: String(row.staff_id),
+    averageRating: Number(row.average_rating ?? 0),
+    reviewCount: Number(row.review_count ?? 0),
+    weightedScore: Number(row.weighted_score ?? 0),
+    rank: Number(row.rank ?? 0),
+    topBadge:
+      Number(row.rank) === 1
+        ? "Top Rated"
+        : Number(row.rank) <= 3
+          ? "Reliable"
+          : Number(row.rank) <= 6
+            ? "Rising"
+            : undefined,
+    profile: {
+      id: String(row.staff_id),
+      role: "staff",
+      fullName: String(row.full_name),
+      email: String(row.email ?? ""),
+      phone: row.phone ? String(row.phone) : undefined,
+      bio: row.bio ? String(row.bio) : undefined,
+      skills: Array.isArray(row.skills) ? row.skills.map(String) : [],
+      availability: row.availability ? String(row.availability) : undefined,
+      avatarUrl: row.avatar_url ? String(row.avatar_url) : undefined,
+      createdAt: new Date().toISOString()
+    }
+  }));
 }
