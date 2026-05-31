@@ -266,6 +266,40 @@ function mapJobAlert(row: Record<string, unknown>): JobAlert {
   };
 }
 
+function mapCompanyFollow(row: Record<string, unknown>) {
+  return {
+    staffId: String(row.staff_id),
+    organizationId: String(row.organization_id),
+    createdAt: String(row.created_at)
+  };
+}
+
+function mapJobMediaSlide(row: Record<string, unknown>) {
+  return {
+    id: String(row.id),
+    jobId: String(row.job_id),
+    organizationId: String(row.organization_id),
+    imageUrl: String(row.image_url),
+    altText: row.alt_text ? String(row.alt_text) : undefined,
+    caption: row.caption ? String(row.caption) : undefined,
+    sortOrder: Number(row.sort_order ?? 0),
+    createdAt: String(row.created_at)
+  };
+}
+
+function mapPushSubscription(row: Record<string, unknown>) {
+  return {
+    id: String(row.id),
+    userId: String(row.user_id),
+    endpoint: String(row.endpoint),
+    p256dh: String(row.p256dh),
+    auth: String(row.auth),
+    userAgent: row.user_agent ? String(row.user_agent) : undefined,
+    createdAt: String(row.created_at),
+    updatedAt: String(row.updated_at)
+  };
+}
+
 function isMissingRelationError(error: unknown) {
   const message = String((error as { message?: unknown } | null)?.message ?? "");
   const code = String((error as { code?: unknown } | null)?.code ?? "");
@@ -387,6 +421,53 @@ function toEnrichedJob(row: Record<string, unknown>): EnrichedJob {
     organization: mapOrganization(row.organizations as Record<string, unknown>),
     applicationCount: Array.isArray(row.applications) ? row.applications.length : 0
   };
+}
+
+async function getConversationThreadsForUser(client: any, session: AuthSession) {
+  let query = client
+    .from("conversation_threads")
+    .select("*, organizations(*), conversation_messages(*)")
+    .order("last_message_at", { ascending: false });
+
+  if (session.role === "staff") {
+    query = query.eq("staff_id", session.userId);
+  }
+
+  const result = await query;
+
+  if (result.error) {
+    return [];
+  }
+
+  return (result.data ?? []).map((row: Record<string, unknown>) => {
+    const messages = Array.isArray(row.conversation_messages)
+      ? row.conversation_messages
+          .map((message: Record<string, unknown>) => ({
+            id: String(message.id),
+            threadId: String(message.thread_id),
+            senderId: String(message.sender_id),
+            body: String(message.body),
+            createdAt: String(message.created_at),
+            readAt: message.read_at ? String(message.read_at) : undefined
+          }))
+          .sort((left, right) => new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime())
+      : [];
+
+    return {
+      id: String(row.id),
+      organizationId: String(row.organization_id),
+      staffId: String(row.staff_id),
+      jobId: row.job_id ? String(row.job_id) : undefined,
+      eventId: row.event_id ? String(row.event_id) : undefined,
+      applicationId: row.application_id ? String(row.application_id) : undefined,
+      subject: String(row.subject ?? "Company conversation"),
+      lastMessageAt: String(row.last_message_at),
+      createdAt: String(row.created_at),
+      organization: mapOrganization(row.organizations as Record<string, unknown>),
+      messages,
+      unreadCount: messages.filter((message) => message.senderId !== session.userId && !message.readAt).length
+    };
+  });
 }
 
 export class SupabaseDataProvider implements StaffBookDataProvider {
@@ -850,7 +931,22 @@ export class SupabaseDataProvider implements StaffBookDataProvider {
     }
 
     const client: any = getBrowserSupabaseClient();
-    const [profile, operatorProfile, availabilityRules, jobs, ratings, feedbackResult, ownApplicationsResult, savedJobsResult, alertsResult] =
+    const [
+      profile,
+      operatorProfile,
+      availabilityRules,
+      jobs,
+      ratings,
+      feedbackResult,
+      ownApplicationsResult,
+      savedJobsResult,
+      alertsResult,
+      followsResult,
+      likesResult,
+      dismissedResult,
+      pushSubscriptionsResult,
+      conversations
+    ] =
       await Promise.all([
         getCurrentProfileOrThrow(client, session.userId),
         getCurrentOperatorProfile(client, session.userId),
@@ -860,17 +956,30 @@ export class SupabaseDataProvider implements StaffBookDataProvider {
         client.from("client_feedback").select("*").eq("staff_id", session.userId),
         client.from("applications").select("id, job_id, status").eq("staff_id", session.userId),
         client.from("saved_jobs").select("job_id").eq("staff_id", session.userId),
-        client.from("job_alerts").select("*").eq("staff_id", session.userId).order("updated_at", { ascending: false })
+        client.from("job_alerts").select("*").eq("staff_id", session.userId).order("updated_at", { ascending: false }),
+        client.from("company_follows").select("*").eq("staff_id", session.userId),
+        client.from("job_likes").select("job_id").eq("staff_id", session.userId),
+        client.from("dismissed_jobs").select("job_id").eq("staff_id", session.userId),
+        client.from("push_subscriptions").select("*").eq("user_id", session.userId),
+        getConversationThreadsForUser(client, session)
       ]);
 
     const savedJobsUnavailable = savedJobsResult.error && isMissingRelationError(savedJobsResult.error);
     const alertsUnavailable = alertsResult.error && isMissingRelationError(alertsResult.error);
+    const followsUnavailable = followsResult.error && isMissingRelationError(followsResult.error);
+    const likesUnavailable = likesResult.error && isMissingRelationError(likesResult.error);
+    const dismissedUnavailable = dismissedResult.error && isMissingRelationError(dismissedResult.error);
+    const pushUnavailable = pushSubscriptionsResult.error && isMissingRelationError(pushSubscriptionsResult.error);
 
     if (
       feedbackResult.error ||
       ownApplicationsResult.error ||
       (savedJobsResult.error && !savedJobsUnavailable) ||
-      (alertsResult.error && !alertsUnavailable)
+      (alertsResult.error && !alertsUnavailable) ||
+      (followsResult.error && !followsUnavailable) ||
+      (likesResult.error && !likesUnavailable) ||
+      (dismissedResult.error && !dismissedUnavailable) ||
+      (pushSubscriptionsResult.error && !pushUnavailable)
     ) {
       throw new AppError(
         feedbackResult.error?.message ??
@@ -888,13 +997,16 @@ export class SupabaseDataProvider implements StaffBookDataProvider {
         profile,
         operatorProfile,
         alerts: alertsUnavailable ? [] : (alertsResult.data ?? []).map((row: Record<string, unknown>) => mapJobAlert(row)),
+        followedOrganizations: followsUnavailable ? [] : (followsResult.data ?? []).map((row: Record<string, unknown>) => mapCompanyFollow(row)),
+        conversations,
+        pushSubscriptions: pushUnavailable ? [] : (pushSubscriptionsResult.data ?? []).map((row: Record<string, unknown>) => mapPushSubscription(row)),
         items: []
       };
     }
 
     const cutoff72 = new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString();
     const jobIds = jobs.map((job) => job.id);
-    const [applicationsResult, viewEventsResult] = await Promise.all([
+    const [applicationsResult, viewEventsResult, mediaSlidesResult] = await Promise.all([
       client
         .from("applications")
         .select("job_id, applied_at")
@@ -904,13 +1016,21 @@ export class SupabaseDataProvider implements StaffBookDataProvider {
         .from("job_view_events")
         .select("id, job_id, viewer_id, viewed_at")
         .in("job_id", jobIds)
-        .gte("viewed_at", cutoff72)
+        .gte("viewed_at", cutoff72),
+      client
+        .from("job_media_slides")
+        .select("*")
+        .in("job_id", jobIds)
+        .order("sort_order", { ascending: true })
     ]);
 
-    if (applicationsResult.error || viewEventsResult.error) {
+    const mediaUnavailable = mediaSlidesResult.error && isMissingRelationError(mediaSlidesResult.error);
+
+    if (applicationsResult.error || viewEventsResult.error || (mediaSlidesResult.error && !mediaUnavailable)) {
       throw new AppError(
         applicationsResult.error?.message ??
           viewEventsResult.error?.message ??
+          (!mediaUnavailable ? mediaSlidesResult.error?.message : undefined) ??
           "Unable to load staff jobs board activity.",
         "SUPABASE_QUERY"
       );
@@ -938,6 +1058,16 @@ export class SupabaseDataProvider implements StaffBookDataProvider {
     const savedJobIds = new Set(
       (savedJobsUnavailable ? [] : (savedJobsResult.data ?? [])).map((row: Record<string, unknown>) => String(row.job_id))
     );
+    const likedJobIds = new Set(
+      (likesUnavailable ? [] : (likesResult.data ?? [])).map((row: Record<string, unknown>) => String(row.job_id))
+    );
+    const dismissedJobIds = new Set(
+      (dismissedUnavailable ? [] : (dismissedResult.data ?? [])).map((row: Record<string, unknown>) => String(row.job_id))
+    );
+    const followedOrganizations = followsUnavailable
+      ? []
+      : (followsResult.data ?? []).map((row: Record<string, unknown>) => mapCompanyFollow(row));
+    const followedOrganizationIds = new Set(followedOrganizations.map((follow) => follow.organizationId));
     const recentApplications = (applicationsResult.data ?? []).map((row: Record<string, unknown>) => ({
       jobId: String(row.job_id),
       appliedAt: String(row.applied_at)
@@ -945,12 +1075,21 @@ export class SupabaseDataProvider implements StaffBookDataProvider {
     const recentViewEvents = (viewEventsResult.data ?? []).map((row: Record<string, unknown>) =>
       mapJobViewEvent(row)
     );
+    const mediaSlidesByJobId = new Map<string, ReturnType<typeof mapJobMediaSlide>[]>();
+    for (const slide of mediaUnavailable ? [] : (mediaSlidesResult.data ?? []).map((row: Record<string, unknown>) => mapJobMediaSlide(row))) {
+      const current = mediaSlidesByJobId.get(slide.jobId) ?? [];
+      current.push(slide);
+      mediaSlidesByJobId.set(slide.jobId, current);
+    }
 
     return {
       session,
       profile,
       operatorProfile,
       alerts: alertsUnavailable ? [] : (alertsResult.data ?? []).map((row: Record<string, unknown>) => mapJobAlert(row)),
+      followedOrganizations,
+      conversations,
+      pushSubscriptions: pushUnavailable ? [] : (pushSubscriptionsResult.data ?? []).map((row: Record<string, unknown>) => mapPushSubscription(row)),
       items: buildStaffJobsBoardItems(
         jobs.map((job) => {
           const suggestion = suggestedJobMap.get(job.id);
@@ -961,6 +1100,10 @@ export class SupabaseDataProvider implements StaffBookDataProvider {
             applicationId: ownApplication?.id,
             applicationStatus: ownApplication?.status,
             isSaved: savedJobIds.has(job.id),
+            isLiked: likedJobIds.has(job.id),
+            isDismissed: dismissedJobIds.has(job.id),
+            isFollowingCompany: followedOrganizationIds.has(job.organizationId),
+            mediaSlides: mediaSlidesByJobId.get(job.id) ?? [],
             matchScore: suggestion?.score ?? 0,
             matchReasons: suggestion?.reasons ?? [],
             trendingSignals: buildTrendingSignals({
@@ -982,8 +1125,9 @@ export class SupabaseDataProvider implements StaffBookDataProvider {
     }
 
     const client: any = getBrowserSupabaseClient();
-    const [dashboard, paymentResult] = await Promise.all([
+    const [dashboard, board, paymentResult] = await Promise.all([
       this.getStaffDashboard(),
+      this.getStaffJobsBoard(),
       client.from("operator_payment_profiles").select("*").eq("operator_id", session.userId).maybeSingle()
     ]);
 
@@ -1020,10 +1164,17 @@ export class SupabaseDataProvider implements StaffBookDataProvider {
             payoutsEnabled: false,
             detailsSubmitted: false,
             updatedAt: new Date().toISOString()
-          },
+      },
       notifications: dashboard.notifications,
+      recentApplications: dashboard.recentApplications,
+      recommendedJobs: dashboard.recommendedJobs,
       recentReviews: dashboard.reviews.slice(0, 6),
-      clientFeedbackQueue: dashboard.clientFeedbackQueue
+      clientFeedbackQueue: dashboard.clientFeedbackQueue,
+      savedJobs: board.items.filter((item) => item.isSaved),
+      likedJobs: board.items.filter((item) => item.isLiked),
+      dismissedJobs: board.items.filter((item) => item.isDismissed),
+      conversations: board.conversations,
+      pushSubscriptions: board.pushSubscriptions
     };
   }
 
@@ -1306,6 +1457,166 @@ export class SupabaseDataProvider implements StaffBookDataProvider {
 
     if (error) {
       throw new AppError(error.message, "SUPABASE_QUERY");
+    }
+  }
+
+  async getSocialJobFeed() {
+    return this.getStaffJobsBoard();
+  }
+
+  async followCompany(organizationId: string) {
+    const session = await this.getSession();
+
+    if (!session || session.role !== "staff") {
+      throw new AppError("You must be signed in as staff.", "UNAUTHENTICATED", 401);
+    }
+
+    const client: any = getBrowserSupabaseClient();
+    const { error } = await client.from("company_follows").upsert(
+      { staff_id: session.userId, organization_id: organizationId },
+      { onConflict: "staff_id,organization_id" }
+    );
+
+    if (error) {
+      throw new AppError(error.message, "FOLLOW_COMPANY_FAILED");
+    }
+  }
+
+  async unfollowCompany(organizationId: string) {
+    const session = await this.getSession();
+
+    if (!session || session.role !== "staff") {
+      throw new AppError("You must be signed in as staff.", "UNAUTHENTICATED", 401);
+    }
+
+    const client: any = getBrowserSupabaseClient();
+    const { error } = await client
+      .from("company_follows")
+      .delete()
+      .eq("staff_id", session.userId)
+      .eq("organization_id", organizationId);
+
+    if (error) {
+      throw new AppError(error.message, "UNFOLLOW_COMPANY_FAILED");
+    }
+  }
+
+  async likeJob(jobId: string) {
+    const session = await this.getSession();
+
+    if (!session || session.role !== "staff") {
+      throw new AppError("You must be signed in as staff.", "UNAUTHENTICATED", 401);
+    }
+
+    const client: any = getBrowserSupabaseClient();
+    const { error } = await client.from("job_likes").upsert(
+      { staff_id: session.userId, job_id: jobId },
+      { onConflict: "staff_id,job_id" }
+    );
+
+    if (error) {
+      throw new AppError(error.message, "LIKE_JOB_FAILED");
+    }
+  }
+
+  async unlikeJob(jobId: string) {
+    const session = await this.getSession();
+
+    if (!session || session.role !== "staff") {
+      throw new AppError("You must be signed in as staff.", "UNAUTHENTICATED", 401);
+    }
+
+    const client: any = getBrowserSupabaseClient();
+    const { error } = await client.from("job_likes").delete().eq("staff_id", session.userId).eq("job_id", jobId);
+
+    if (error) {
+      throw new AppError(error.message, "UNLIKE_JOB_FAILED");
+    }
+  }
+
+  async dismissJob(jobId: string) {
+    const session = await this.getSession();
+
+    if (!session || session.role !== "staff") {
+      throw new AppError("You must be signed in as staff.", "UNAUTHENTICATED", 401);
+    }
+
+    const client: any = getBrowserSupabaseClient();
+    const { error } = await client.from("dismissed_jobs").upsert(
+      { staff_id: session.userId, job_id: jobId },
+      { onConflict: "staff_id,job_id" }
+    );
+
+    if (error) {
+      throw new AppError(error.message, "DISMISS_JOB_FAILED");
+    }
+  }
+
+  async restoreDismissedJob(jobId: string) {
+    const session = await this.getSession();
+
+    if (!session || session.role !== "staff") {
+      throw new AppError("You must be signed in as staff.", "UNAUTHENTICATED", 401);
+    }
+
+    const client: any = getBrowserSupabaseClient();
+    const { error } = await client.from("dismissed_jobs").delete().eq("staff_id", session.userId).eq("job_id", jobId);
+
+    if (error) {
+      throw new AppError(error.message, "RESTORE_JOB_FAILED");
+    }
+  }
+
+  async getConversationThreads() {
+    const session = await this.getSession();
+
+    if (!session) {
+      throw new AppError("You must be signed in.", "UNAUTHENTICATED", 401);
+    }
+
+    const client: any = getBrowserSupabaseClient();
+    return getConversationThreadsForUser(client, session);
+  }
+
+  async sendConversationMessage(input: { organizationId: string; jobId?: string; body: string }) {
+    const response = await fetch("/api/conversations/messages", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input)
+    });
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok || !payload?.thread) {
+      throw new AppError(payload?.error ?? "Unable to send message.", "SEND_MESSAGE_FAILED", response.status);
+    }
+
+    return payload.thread;
+  }
+
+  async registerPushSubscription(input: { endpoint: string; keys: { p256dh: string; auth: string }; userAgent?: string }) {
+    const response = await fetch("/api/push/subscriptions", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input)
+    });
+
+    if (!response.ok) {
+      throw new AppError("Unable to register push notifications.", "PUSH_REGISTER_FAILED", response.status);
+    }
+  }
+
+  async deletePushSubscription(endpoint: string) {
+    const response = await fetch("/api/push/subscriptions", {
+      method: "DELETE",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ endpoint })
+    });
+
+    if (!response.ok) {
+      throw new AppError("Unable to remove push notifications.", "PUSH_DELETE_FAILED", response.status);
     }
   }
 

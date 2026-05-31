@@ -16,6 +16,7 @@ import { LoadingPanel } from "@/components/ui/loading-panel";
 import { StatCard } from "@/components/ui/stat-card";
 import { useQueryState } from "@/features/app/use-query-state";
 import { useStaffBook } from "@/features/app/use-staffbook";
+import { MobileSocialJobFeed } from "@/features/staff/mobile-social-job-feed";
 import { sortBoardItemsByNew } from "@/lib/domain/jobs-board";
 import { formatApplicationStatus } from "@/lib/brand";
 import { toDisplayError } from "@/lib/errors";
@@ -136,7 +137,9 @@ export function StaffJobsBoard() {
         title="Jobs"
         description="Track what is moving now, switch between trending and newly posted roles, and keep your current applications in view."
       >
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <MobileSocialJobFeed board={board.data} items={items} onRefresh={board.refresh} />
+
+        <div className="hidden gap-4 md:grid sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
             label="Open jobs"
             value={board.data.items.length}
@@ -159,7 +162,7 @@ export function StaffJobsBoard() {
           />
         </div>
 
-        <Card className="mt-8">
+        <Card className="mt-8 hidden md:block">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate">Board view</p>
@@ -197,7 +200,7 @@ export function StaffJobsBoard() {
           </div>
         </Card>
 
-        <Card className="mt-8">
+        <Card className="mt-8 hidden md:block">
           <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate">Job alerts</p>
@@ -309,7 +312,7 @@ export function StaffJobsBoard() {
           </div>
         </Card>
 
-        <div className="mt-8 grid gap-4">
+        <div className="mt-8 hidden gap-4 md:grid">
           {items.length === 0 ? (
             <Card>
               <EmptyState
@@ -405,14 +408,14 @@ export function StaffJobsBoard() {
                       onClick={async () => {
                         try {
                           await provider.withdrawApplication(item.applicationId!);
-                          toast.success("Deployment request withdrawn.");
+                          toast.success("Application withdrawn.");
                           await board.refresh();
                         } catch (error) {
                           toast.error(toDisplayError(error));
                         }
                       }}
                     >
-                      Withdraw request
+                      Withdraw application
                     </Button>
                   ) : null}
                 </div>

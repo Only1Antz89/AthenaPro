@@ -32,6 +32,11 @@ begin
 end $$;
 
 alter type public.notification_type add value if not exists 'job_alert';
+alter type public.notification_type add value if not exists 'company_message';
+alter type public.notification_type add value if not exists 'event_pre_day';
+alter type public.notification_type add value if not exists 'event_on_day';
+alter type public.notification_type add value if not exists 'event_post_event';
+alter type public.notification_type add value if not exists 'company_job_posted';
 
 create table if not exists public.organizations (
   id uuid primary key default gen_random_uuid(),
@@ -233,6 +238,71 @@ create table if not exists public.job_alerts (
   check (minimum_pay is null or minimum_pay >= 0)
 );
 
+create table if not exists public.company_follows (
+  staff_id uuid not null references public.profiles(id) on delete cascade,
+  organization_id uuid not null references public.organizations(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (staff_id, organization_id)
+);
+
+create table if not exists public.job_likes (
+  staff_id uuid not null references public.profiles(id) on delete cascade,
+  job_id uuid not null references public.jobs(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (staff_id, job_id)
+);
+
+create table if not exists public.dismissed_jobs (
+  staff_id uuid not null references public.profiles(id) on delete cascade,
+  job_id uuid not null references public.jobs(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (staff_id, job_id)
+);
+
+create table if not exists public.job_media_slides (
+  id uuid primary key default gen_random_uuid(),
+  job_id uuid not null references public.jobs(id) on delete cascade,
+  organization_id uuid not null references public.organizations(id) on delete cascade,
+  image_url text not null,
+  alt_text text,
+  caption text,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.conversation_threads (
+  id uuid primary key default gen_random_uuid(),
+  organization_id uuid not null references public.organizations(id) on delete cascade,
+  staff_id uuid not null references public.profiles(id) on delete cascade,
+  job_id uuid references public.jobs(id) on delete set null,
+  event_id uuid references public.events(id) on delete set null,
+  application_id uuid references public.applications(id) on delete set null,
+  subject text not null,
+  last_message_at timestamptz not null default now(),
+  created_at timestamptz not null default now(),
+  unique (organization_id, staff_id, job_id)
+);
+
+create table if not exists public.conversation_messages (
+  id uuid primary key default gen_random_uuid(),
+  thread_id uuid not null references public.conversation_threads(id) on delete cascade,
+  sender_id uuid not null references public.profiles(id) on delete cascade,
+  body text not null,
+  created_at timestamptz not null default now(),
+  read_at timestamptz
+);
+
+create table if not exists public.push_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  endpoint text not null unique,
+  p256dh text not null,
+  auth text not null,
+  user_agent text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists public.ratings (
   id uuid primary key default gen_random_uuid(),
   event_id uuid not null references public.events(id) on delete cascade,
@@ -398,6 +468,28 @@ alter table if exists public.job_alerts
   add column if not exists created_at timestamptz not null default now(),
   add column if not exists updated_at timestamptz not null default now();
 
+alter table if exists public.job_media_slides
+  add column if not exists alt_text text,
+  add column if not exists caption text,
+  add column if not exists sort_order integer not null default 0,
+  add column if not exists created_at timestamptz not null default now();
+
+alter table if exists public.conversation_threads
+  add column if not exists job_id uuid references public.jobs(id) on delete set null,
+  add column if not exists event_id uuid references public.events(id) on delete set null,
+  add column if not exists application_id uuid references public.applications(id) on delete set null,
+  add column if not exists subject text not null default 'Event conversation',
+  add column if not exists last_message_at timestamptz not null default now(),
+  add column if not exists created_at timestamptz not null default now();
+
+alter table if exists public.conversation_messages
+  add column if not exists read_at timestamptz;
+
+alter table if exists public.push_subscriptions
+  add column if not exists user_agent text,
+  add column if not exists created_at timestamptz not null default now(),
+  add column if not exists updated_at timestamptz not null default now();
+
 alter table if exists public.ratings
   add column if not exists job_id uuid references public.jobs(id) on delete cascade,
   add column if not exists reliability_score integer,
@@ -508,6 +600,11 @@ create trigger job_alerts_set_updated_at
 before update on public.job_alerts
 for each row execute procedure public.set_updated_at();
 
+drop trigger if exists push_subscriptions_set_updated_at on public.push_subscriptions;
+create trigger push_subscriptions_set_updated_at
+before update on public.push_subscriptions
+for each row execute procedure public.set_updated_at();
+
 create or replace function public.log_application_status_change()
 returns trigger
 language plpgsql
@@ -559,6 +656,14 @@ create index if not exists idx_operator_availability_operator on public.operator
 create index if not exists idx_saved_jobs_staff_created_at on public.saved_jobs(staff_id, created_at desc);
 create index if not exists idx_saved_jobs_job_id on public.saved_jobs(job_id);
 create index if not exists idx_job_alerts_staff_active on public.job_alerts(staff_id, is_active, updated_at desc);
+create index if not exists idx_company_follows_organization on public.company_follows(organization_id, created_at desc);
+create index if not exists idx_job_likes_job_id on public.job_likes(job_id, created_at desc);
+create index if not exists idx_dismissed_jobs_staff_created_at on public.dismissed_jobs(staff_id, created_at desc);
+create index if not exists idx_job_media_slides_job_order on public.job_media_slides(job_id, sort_order asc);
+create index if not exists idx_conversation_threads_staff_last on public.conversation_threads(staff_id, last_message_at desc);
+create index if not exists idx_conversation_threads_org_last on public.conversation_threads(organization_id, last_message_at desc);
+create index if not exists idx_conversation_messages_thread_created on public.conversation_messages(thread_id, created_at asc);
+create index if not exists idx_push_subscriptions_user on public.push_subscriptions(user_id, updated_at desc);
 create index if not exists idx_client_feedback_staff on public.client_feedback(staff_id, created_at desc);
 create index if not exists idx_notifications_user on public.notifications(user_id, created_at desc);
 create index if not exists idx_operator_profiles_onboarding_status on public.operator_profiles(onboarding_status, updated_at desc);

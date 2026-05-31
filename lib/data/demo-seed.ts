@@ -2,12 +2,18 @@ import type {
   Application,
   ApplicationStatusHistoryEntry,
   ClientFeedback,
+  CompanyFollow,
+  ConversationMessage,
+  ConversationThread,
   DemoDatabase,
+  DismissedJob,
   Event,
   JobViewEvent,
   MarketingPreference,
   Job,
   JobAlert,
+  JobLike,
+  JobMediaSlide,
   Notification,
   NotificationEmailJob,
   OperatorAvailabilityRule,
@@ -16,6 +22,7 @@ import type {
   Organization,
   OrganizationMembership,
   Profile,
+  PushSubscriptionRecord,
   Rating,
   SavedJob
 } from "@/types/domain";
@@ -582,6 +589,67 @@ const jobAlerts: JobAlert[] = [
   }
 ];
 
+const companyFollows: CompanyFollow[] = [
+  {
+    staffId: "user_staff_9",
+    organizationId: "org_1",
+    createdAt: nowMinusDays(2)
+  }
+];
+
+const jobLikes: JobLike[] = [
+  {
+    staffId: "user_staff_9",
+    jobId: "job_2",
+    createdAt: nowMinusDays(1)
+  }
+];
+
+const dismissedJobs: DismissedJob[] = [];
+
+const jobMediaSlides: JobMediaSlide[] = jobs.slice(0, 6).flatMap((job, index) => [
+  {
+    id: `media_${job.id}_1`,
+    jobId: job.id,
+    organizationId: job.organizationId,
+    imageUrl:
+      index % 3 === 0
+        ? "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1200&q=80"
+        : index % 3 === 1
+          ? "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=1200&q=80"
+          : "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80",
+    altText: "Festival crowd and live event lighting",
+    caption: job.roleType,
+    sortOrder: 0,
+    createdAt: nowMinusDays(index + 1)
+  }
+]);
+
+const conversationThreads: ConversationThread[] = [
+  {
+    id: "thread_seed_1",
+    organizationId: "org_1",
+    staffId: "user_staff_9",
+    jobId: "job_3",
+    eventId: jobs.find((job) => job.id === "job_3")?.eventId,
+    subject: "Gate briefing for your next role",
+    lastMessageAt: nowMinusDays(1),
+    createdAt: nowMinusDays(2)
+  }
+];
+
+const conversationMessages: ConversationMessage[] = [
+  {
+    id: "message_seed_1",
+    threadId: "thread_seed_1",
+    senderId: "user_organiser_1",
+    body: "Briefing notes are live. Bring ID, black trainers, and arrive 30 minutes before call time.",
+    createdAt: nowMinusDays(1)
+  }
+];
+
+const pushSubscriptions: PushSubscriptionRecord[] = [];
+
 const marketingPreferences: MarketingPreference[] = [...organiserProfiles, ...staffProfiles].map((profile) => ({
   profileId: profile.id,
   emailNormalized: profile.email.toLowerCase(),
@@ -609,6 +677,13 @@ export function buildBaseDemoDatabase(): DemoDatabase {
     jobViewEvents,
     savedJobs,
     jobAlerts,
+    companyFollows,
+    jobLikes,
+    dismissedJobs,
+    jobMediaSlides,
+    conversationThreads,
+    conversationMessages,
+    pushSubscriptions,
     ratings,
     clientFeedback,
     notifications,

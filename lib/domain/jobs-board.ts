@@ -21,6 +21,10 @@ type BoardSource = {
   applicationId?: string;
   applicationStatus?: ApplicationStatus;
   isSaved?: boolean;
+  isLiked?: boolean;
+  isDismissed?: boolean;
+  isFollowingCompany?: boolean;
+  mediaSlides?: StaffJobsBoardItem["mediaSlides"];
   matchScore: number;
   matchReasons: string[];
   trendingSignals: JobTrendingSignals;
@@ -147,6 +151,10 @@ export function buildStaffJobsBoardItems(sources: BoardSource[]) {
         hasApplied: Boolean(source.applicationStatus),
         applicationStatus: source.applicationStatus,
         isSaved: Boolean(source.isSaved),
+        isLiked: Boolean(source.isLiked),
+        isDismissed: Boolean(source.isDismissed),
+        isFollowingCompany: Boolean(source.isFollowingCompany),
+        mediaSlides: source.mediaSlides ?? [],
         matchScore: source.matchScore,
         matchReasons: source.matchReasons,
         trendingScore: momentumScore * 0.65 + source.matchScore * 0.35,

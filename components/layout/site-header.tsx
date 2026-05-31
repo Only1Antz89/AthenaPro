@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { BriefcaseBusiness, Menu, UserCircle, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/page-container";
@@ -16,10 +16,10 @@ export function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const links = [
-    { href: "/", label: "Home" },
-    { href: "/services", label: NAV_LABELS.services },
+    { href: "/jobs", label: NAV_LABELS.jobs },
+    { href: "/services", label: "Companies" },
+    { href: "/staff", label: NAV_LABELS.staff },
     { href: "/about", label: NAV_LABELS.about },
-    { href: "/contact", label: NAV_LABELS.contact },
     ...(session
       ? [
           {
@@ -30,6 +30,12 @@ export function SiteHeader() {
         ]
       : [])
   ];
+  const profileHref =
+    session?.role === "staff"
+      ? "/dashboard/staff/profile"
+      : session?.role === "organiser"
+        ? "/dashboard/organiser"
+        : "/auth/login";
 
   useEffect(() => {
     setMenuOpen(false);
@@ -43,7 +49,7 @@ export function SiteHeader() {
             {BRAND.name}
           </Link>
         </div>
-        <nav className="hidden items-center gap-6 md:flex">
+        <nav className="hidden items-center gap-5 md:flex">
           {links.map((link) => (
             <Link
               key={link.href}
@@ -61,10 +67,18 @@ export function SiteHeader() {
         <div className="hidden items-center gap-3 md:flex">
           {session ? (
             <>
-              <span className="hidden text-sm text-slate md:inline">{session.email}</span>
-              <Link href={session.role === "organiser" ? "/dashboard/organiser" : "/dashboard/staff"}>
-                <Button variant="secondary">
-                  {session.role === "organiser" ? NAV_LABELS.clientDashboard : NAV_LABELS.fieldTeamDashboard}
+              {session.role === "staff" ? (
+                <Link href="/dashboard/staff/jobs">
+                  <Button variant="secondary" className="gap-2">
+                    <BriefcaseBusiness className="h-4 w-4" />
+                    Jobs
+                  </Button>
+                </Link>
+              ) : null}
+              <Link href={profileHref}>
+                <Button variant="accent" className="gap-2">
+                  <UserCircle className="h-4 w-4" />
+                  {session.role === "organiser" ? NAV_LABELS.clientDashboard : "Profile"}
                 </Button>
               </Link>
               <Button
@@ -79,17 +93,25 @@ export function SiteHeader() {
               </Button>
             </>
           ) : (
-            <Link href="/auth/login">
-              <Button variant="secondary">{NAV_LABELS.login}</Button>
-            </Link>
+            <>
+              <Link href="/auth/signup?type=company">
+                <Button variant="secondary">Company sign up</Button>
+              </Link>
+              <Link href="/auth/signup?type=field-team">
+                <Button variant="accent">Field-team sign up</Button>
+              </Link>
+              <Link href="/auth/login">
+                <Button variant="secondary">{NAV_LABELS.login}</Button>
+              </Link>
+            </>
           )}
         </div>
 
         <div className="flex items-center gap-2 md:hidden">
           {session ? (
-            <Link href={session.role === "organiser" ? "/dashboard/organiser" : "/dashboard/staff"}>
+            <Link href={profileHref}>
               <Button className="px-4 py-2.5">
-                {session.role === "organiser" ? "Workspace" : "Dashboard"}
+                {session.role === "organiser" ? "Workspace" : "Profile"}
               </Button>
             </Link>
           ) : (
@@ -152,6 +174,16 @@ export function SiteHeader() {
                 </div>
               ) : (
                 <div className="grid gap-3">
+                  <Link href="/auth/signup?type=field-team" className="block">
+                    <Button variant="accent" className="w-full">
+                      Field-team sign up
+                    </Button>
+                  </Link>
+                  <Link href="/auth/signup?type=company" className="block">
+                    <Button variant="secondary" className="w-full">
+                      Company sign up
+                    </Button>
+                  </Link>
                   <Link href="/auth/login" className="block">
                     <Button variant="secondary" className="w-full">
                       {NAV_LABELS.login}

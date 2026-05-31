@@ -12,6 +12,13 @@ alter table if exists public.application_status_history enable row level securit
 alter table if exists public.job_view_events enable row level security;
 alter table if exists public.saved_jobs enable row level security;
 alter table if exists public.job_alerts enable row level security;
+alter table if exists public.company_follows enable row level security;
+alter table if exists public.job_likes enable row level security;
+alter table if exists public.dismissed_jobs enable row level security;
+alter table if exists public.job_media_slides enable row level security;
+alter table if exists public.conversation_threads enable row level security;
+alter table if exists public.conversation_messages enable row level security;
+alter table if exists public.push_subscriptions enable row level security;
 alter table if exists public.ratings enable row level security;
 alter table if exists public.client_feedback enable row level security;
 alter table if exists public.notifications enable row level security;
@@ -297,6 +304,138 @@ begin
         )
       )
     $policy$;
+  end if;
+
+  if to_regclass('public.company_follows') is not null then
+    execute 'drop policy if exists "company_follows_manage_self" on public.company_follows';
+    execute $policy$
+      create policy "company_follows_manage_self"
+      on public.company_follows
+      for all
+      using (staff_id = auth.uid())
+      with check (
+        staff_id = auth.uid()
+        and exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'staff')
+      )
+    $policy$;
+  end if;
+
+  if to_regclass('public.job_likes') is not null then
+    execute 'drop policy if exists "job_likes_manage_self" on public.job_likes';
+    execute $policy$
+      create policy "job_likes_manage_self"
+      on public.job_likes
+      for all
+      using (staff_id = auth.uid())
+      with check (
+        staff_id = auth.uid()
+        and exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'staff')
+      )
+    $policy$;
+  end if;
+
+  if to_regclass('public.dismissed_jobs') is not null then
+    execute 'drop policy if exists "dismissed_jobs_manage_self" on public.dismissed_jobs';
+    execute $policy$
+      create policy "dismissed_jobs_manage_self"
+      on public.dismissed_jobs
+      for all
+      using (staff_id = auth.uid())
+      with check (
+        staff_id = auth.uid()
+        and exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'staff')
+      )
+    $policy$;
+  end if;
+end $$;
+
+do $$
+begin
+  if to_regclass('public.job_media_slides') is not null then
+    execute 'drop policy if exists "job_media_slides_read_open_or_org" on public.job_media_slides';
+    execute $policy$
+      create policy "job_media_slides_read_open_or_org"
+      on public.job_media_slides
+      for select
+      using (
+        public.is_org_member(organization_id)
+        or exists (select 1 from public.jobs j where j.id = job_id and j.status = 'open')
+      )
+    $policy$;
+    execute 'drop policy if exists "job_media_slides_org_manage" on public.job_media_slides';
+    execute 'create policy "job_media_slides_org_manage" on public.job_media_slides for all using (public.is_org_member(organization_id)) with check (public.is_org_member(organization_id))';
+  end if;
+
+  if to_regclass('public.conversation_threads') is not null then
+    execute 'drop policy if exists "conversation_threads_read_related" on public.conversation_threads';
+    execute 'create policy "conversation_threads_read_related" on public.conversation_threads for select using (staff_id = auth.uid() or public.is_org_member(organization_id))';
+    execute 'drop policy if exists "conversation_threads_insert_related" on public.conversation_threads';
+    execute $policy$
+      create policy "conversation_threads_insert_related"
+      on public.conversation_threads
+      for insert
+      with check (
+        staff_id = auth.uid()
+        or public.is_org_member(organization_id)
+      )
+    $policy$;
+    execute 'drop policy if exists "conversation_threads_update_related" on public.conversation_threads';
+    execute 'create policy "conversation_threads_update_related" on public.conversation_threads for update using (staff_id = auth.uid() or public.is_org_member(organization_id)) with check (staff_id = auth.uid() or public.is_org_member(organization_id))';
+  end if;
+
+  if to_regclass('public.conversation_messages') is not null then
+    execute 'drop policy if exists "conversation_messages_read_related" on public.conversation_messages';
+    execute $policy$
+      create policy "conversation_messages_read_related"
+      on public.conversation_messages
+      for select
+      using (
+        exists (
+          select 1 from public.conversation_threads t
+          where t.id = thread_id
+            and (t.staff_id = auth.uid() or public.is_org_member(t.organization_id))
+        )
+      )
+    $policy$;
+    execute 'drop policy if exists "conversation_messages_insert_related" on public.conversation_messages';
+    execute $policy$
+      create policy "conversation_messages_insert_related"
+      on public.conversation_messages
+      for insert
+      with check (
+        sender_id = auth.uid()
+        and exists (
+          select 1 from public.conversation_threads t
+          where t.id = thread_id
+            and (t.staff_id = auth.uid() or public.is_org_member(t.organization_id))
+        )
+      )
+    $policy$;
+    execute 'drop policy if exists "conversation_messages_update_related" on public.conversation_messages';
+    execute $policy$
+      create policy "conversation_messages_update_related"
+      on public.conversation_messages
+      for update
+      using (
+        exists (
+          select 1 from public.conversation_threads t
+          where t.id = thread_id
+            and (t.staff_id = auth.uid() or public.is_org_member(t.organization_id))
+        )
+      )
+      with check (
+        exists (
+          select 1 from public.conversation_threads t
+          where t.id = thread_id
+            and (t.staff_id = auth.uid() or public.is_org_member(t.organization_id))
+        )
+      )
+    $policy$;
+  end if;
+
+  if to_regclass('public.push_subscriptions') is not null then
+    execute 'drop policy if exists "push_subscriptions_manage_self" on public.push_subscriptions';
+    execute 'create policy "push_subscriptions_manage_self" on public.push_subscriptions for all using (user_id = auth.uid()) with check (user_id = auth.uid())';
   end if;
 end $$;
 

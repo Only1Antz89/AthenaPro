@@ -16,7 +16,10 @@ const envSchema = z.object({
   ATHENA_COMPANY_REGISTRATION: z.string().optional(),
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
-  GOOGLE_REDIRECT_URI: z.string().url().optional()
+  GOOGLE_REDIRECT_URI: z.string().url().optional(),
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().optional(),
+  VAPID_PRIVATE_KEY: z.string().optional(),
+  WEB_PUSH_CONTACT: z.string().optional()
 });
 
 const parsed = envSchema.safeParse({
@@ -34,7 +37,10 @@ const parsed = envSchema.safeParse({
   ATHENA_COMPANY_REGISTRATION: process.env.ATHENA_COMPANY_REGISTRATION,
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
-  GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI
+  GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI,
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+  VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY,
+  WEB_PUSH_CONTACT: process.env.WEB_PUSH_CONTACT
 });
 
 const data = parsed.success ? parsed.data : {};
@@ -55,6 +61,9 @@ export const env = {
   googleClientId: data.GOOGLE_CLIENT_ID ?? "",
   googleClientSecret: data.GOOGLE_CLIENT_SECRET ?? "",
   googleRedirectUri: data.GOOGLE_REDIRECT_URI ?? "",
+  vapidPublicKey: data.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "",
+  vapidPrivateKey: data.VAPID_PRIVATE_KEY ?? "",
+  webPushContact: data.WEB_PUSH_CONTACT ?? "mailto:ops@athenapro.co.uk",
   hasSupabase:
     Boolean(data.NEXT_PUBLIC_SUPABASE_URL) &&
     Boolean(data.NEXT_PUBLIC_SUPABASE_ANON_KEY),
@@ -66,7 +75,10 @@ export const env = {
   hasGoogleOAuth:
     Boolean(data.GOOGLE_CLIENT_ID) &&
     Boolean(data.GOOGLE_CLIENT_SECRET) &&
-    Boolean(data.GOOGLE_REDIRECT_URI)
+    Boolean(data.GOOGLE_REDIRECT_URI),
+  hasWebPush:
+    Boolean(data.NEXT_PUBLIC_VAPID_PUBLIC_KEY) &&
+    Boolean(data.VAPID_PRIVATE_KEY)
 };
 
 export function getRuntimeMode(): RuntimeMode {

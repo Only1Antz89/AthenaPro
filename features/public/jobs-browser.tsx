@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { useQueryState } from "@/features/app/use-query-state";
 import { useStaffBook } from "@/features/app/use-staffbook";
+import { MobileSocialJobFeed } from "@/features/staff/mobile-social-job-feed";
 import { ENTITY_LABELS } from "@/lib/brand";
 import { filterJobs } from "@/lib/domain/jobs-board";
 import { toDisplayError } from "@/lib/errors";
@@ -95,6 +96,10 @@ export function JobsBrowser({ initialJobs }: { initialJobs: EnrichedJob[] }) {
     [boardByJobId, dateFrom, dateTo, initialJobs, location, minimumPay, query, roleTypes, savedOnly, sort]
   );
   const isStaff = session?.role === "staff";
+  const mobileFeedItems = useMemo(() => {
+    const visibleJobIds = new Set(jobs.map((job) => job.id));
+    return (board.data?.items ?? []).filter((item) => visibleJobIds.has(item.job.id));
+  }, [board.data?.items, jobs]);
 
   return (
     <main>
@@ -113,7 +118,13 @@ export function JobsBrowser({ initialJobs }: { initialJobs: EnrichedJob[] }) {
             </p>
           </div>
 
-          <Card className="mt-10">
+          {isStaff && board.data ? (
+            <div className="mt-8">
+              <MobileSocialJobFeed board={board.data} items={mobileFeedItems} onRefresh={board.refresh} />
+            </div>
+          ) : null}
+
+          <Card className="mt-10 hidden md:block">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <Field label="Search">
                 <Input
@@ -188,7 +199,7 @@ export function JobsBrowser({ initialJobs }: { initialJobs: EnrichedJob[] }) {
             </div>
           </Card>
 
-          <div className="mt-8 grid gap-4">
+          <div className={cn("mt-8 grid gap-4", isStaff && board.data ? "hidden md:grid" : "")}>
             {jobs.length === 0 ? (
               <Card>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -240,7 +251,7 @@ export function JobsBrowser({ initialJobs }: { initialJobs: EnrichedJob[] }) {
                       </div>
                     </div>
                     <div className="flex flex-col items-stretch gap-3 lg:items-end">
-                      <p className="text-sm text-slate">{job.applicationCount} deployment requests</p>
+                      <p className="text-sm text-slate">{job.applicationCount} applications</p>
                       {isStaff ? (
                         <Button
                           type="button"

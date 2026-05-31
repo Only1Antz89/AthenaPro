@@ -103,7 +103,7 @@ export function JobDetail({ job }: { job: EnrichedJob }) {
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate">Company</p>
               <h2 className="mt-3 text-2xl font-semibold text-ink">{job.organization.name}</h2>
               <p className="mt-2 text-sm text-slate">Job context and event brief.</p>
-              <p className="mt-4 text-sm text-slate">{job.applicationCount} deployment requests submitted</p>
+              <p className="mt-4 text-sm text-slate">{job.applicationCount} applications submitted</p>
               <div className="mt-5 rounded-[20px] border border-line/60 bg-surfaceRaised/50 px-4 py-4">
                 <p className="text-sm font-semibold text-ink">Eligibility signals</p>
                 <div className="mt-3 space-y-2 text-sm text-slate">
@@ -116,7 +116,7 @@ export function JobDetail({ job }: { job: EnrichedJob }) {
 
             <Card>
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate">
-                Submit deployment request
+                Apply for job
               </p>
               {session?.role === "staff" && boardItem?.hasApplied ? (
                 <div className="mt-5 space-y-4">
@@ -124,7 +124,7 @@ export function JobDetail({ job }: { job: EnrichedJob }) {
                     Application {boardItem.applicationStatus}
                   </Badge>
                   <p className="text-sm text-slate">
-                    This role is already in your deployment request pipeline.
+                    This role is already in your application tracker.
                   </p>
                   <div className="flex flex-col gap-3 sm:flex-row">
                     {boardItem.applicationStatus === "pending" && boardItem.applicationId ? (
@@ -134,14 +134,14 @@ export function JobDetail({ job }: { job: EnrichedJob }) {
                         onClick={async () => {
                           try {
                             await provider.withdrawApplication(boardItem.applicationId!);
-                            toast.success("Deployment request withdrawn.");
+                            toast.success("Application withdrawn.");
                             await board.refresh();
                           } catch (error) {
                             toast.error(toDisplayError(error));
                           }
                         }}
                       >
-                        Withdraw request
+                        Withdraw application
                       </Button>
                     ) : null}
                     <Button
@@ -180,7 +180,7 @@ export function JobDetail({ job }: { job: EnrichedJob }) {
                         coverNote
                       });
                       await provider.applyToJob(payload);
-                      toast.success("Deployment request submitted.");
+                      toast.success("Application submitted.");
                       setCoverNote("");
                       await board.refresh();
                     } catch (error) {
@@ -198,7 +198,7 @@ export function JobDetail({ job }: { job: EnrichedJob }) {
                     />
                   </Field>
                   <Button type="submit" variant="accent" className="w-full sm:w-auto" disabled={submitting}>
-                    {submitting ? "Submitting..." : "Submit request"}
+                    {submitting ? "Submitting..." : "Apply for role"}
                   </Button>
                   <Button
                     type="button"

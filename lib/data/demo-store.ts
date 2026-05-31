@@ -13,6 +13,7 @@ import type {
   AuthSession,
   ClientFeedback,
   DemoDatabase,
+  EnrichedConversationThread,
   EnrichedApplication,
   EnrichedJob,
   Event,
@@ -70,7 +71,14 @@ function normalizeDemoDatabase(database: DemoDatabase): DemoDatabase {
   return {
     ...database,
     savedJobs: database.savedJobs ?? [],
-    jobAlerts: database.jobAlerts ?? []
+    jobAlerts: database.jobAlerts ?? [],
+    companyFollows: database.companyFollows ?? [],
+    jobLikes: database.jobLikes ?? [],
+    dismissedJobs: database.dismissedJobs ?? [],
+    jobMediaSlides: database.jobMediaSlides ?? [],
+    conversationThreads: database.conversationThreads ?? [],
+    conversationMessages: database.conversationMessages ?? [],
+    pushSubscriptions: database.pushSubscriptions ?? []
   };
 }
 
@@ -167,6 +175,45 @@ function enrichApplication(database: DemoDatabase, application: Application): En
     organization,
     staff
   };
+}
+
+function enrichConversationThread(database: DemoDatabase, threadId: string): EnrichedConversationThread {
+  const thread = database.conversationThreads.find((item) => item.id === threadId);
+
+  if (!thread) {
+    throw new AppError("Conversation not found.", "NOT_FOUND", 404);
+  }
+
+  const organization = database.organizations.find((item) => item.id === thread.organizationId);
+
+  if (!organization) {
+    throw new AppError("Conversation organization is missing.", "RELATIONSHIP_ERROR", 500);
+  }
+
+  return {
+    ...thread,
+    organization,
+    job: thread.jobId ? enrichJob(database, thread.jobId) : undefined,
+    messages: database.conversationMessages
+      .filter((message) => message.threadId === thread.id)
+      .sort((left, right) => new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime()),
+    unreadCount: database.conversationMessages.filter(
+      (message) => message.threadId === thread.id && message.senderId !== thread.staffId && !message.readAt
+    ).length
+  };
+}
+
+function getConversationsForSession(database: DemoDatabase, session: AuthSession) {
+  const organization = session.role === "organiser" ? getOrganisationForProfile(database, session.userId) : null;
+
+  return database.conversationThreads
+    .filter((thread) =>
+      session.role === "staff"
+        ? thread.staffId === session.userId
+        : organization?.id === thread.organizationId
+    )
+    .sort((left, right) => new Date(right.lastMessageAt).getTime() - new Date(left.lastMessageAt).getTime())
+    .map((thread) => enrichConversationThread(database, thread.id));
 }
 
 function getReviewQueue(database: DemoDatabase, organisationId: string): ReviewQueueItem[] {
@@ -484,6 +531,17 @@ function buildStaffJobsBoardFromDb(database: DemoDatabase, session: AuthSession)
   const savedJobIds = new Set(
     database.savedJobs.filter((savedJob) => savedJob.staffId === session.userId).map((savedJob) => savedJob.jobId)
   );
+  const likedJobIds = new Set(
+    database.jobLikes.filter((like) => like.staffId === session.userId).map((like) => like.jobId)
+  );
+  const dismissedJobIds = new Set(
+    database.dismissedJobs.filter((dismissedJob) => dismissedJob.staffId === session.userId).map((dismissedJob) => dismissedJob.jobId)
+  );
+  const followedOrganizationIds = new Set(
+    database.companyFollows
+      .filter((follow) => follow.staffId === session.userId)
+      .map((follow) => follow.organizationId)
+  );
 
   return {
     session,
@@ -492,6 +550,9 @@ function buildStaffJobsBoardFromDb(database: DemoDatabase, session: AuthSession)
     alerts: database.jobAlerts
       .filter((alert) => alert.staffId === session.userId)
       .sort((left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime()),
+    followedOrganizations: database.companyFollows.filter((follow) => follow.staffId === session.userId),
+    conversations: getConversationsForSession(database, session),
+    pushSubscriptions: database.pushSubscriptions.filter((subscription) => subscription.userId === session.userId),
     items: buildStaffJobsBoardItems(
       database.jobs
         .filter((job) => job.status === "open")
@@ -505,6 +566,12 @@ function buildStaffJobsBoardFromDb(database: DemoDatabase, session: AuthSession)
             applicationId: ownApplication?.id,
             applicationStatus: ownApplication?.status,
             isSaved: savedJobIds.has(job.id),
+            isLiked: likedJobIds.has(job.id),
+            isDismissed: dismissedJobIds.has(job.id),
+            isFollowingCompany: followedOrganizationIds.has(job.organizationId),
+            mediaSlides: database.jobMediaSlides
+              .filter((slide) => slide.jobId === job.id)
+              .sort((left, right) => left.sortOrder - right.sortOrder),
             matchScore: suggestion?.score ?? 0,
             matchReasons: suggestion?.reasons ?? [],
             trendingSignals: buildTrendingSignals({
@@ -565,6 +632,7 @@ function getMarketingPreference(database: DemoDatabase, profileId: string): Mark
 
 function buildOperatorWorkspaceFromDb(database: DemoDatabase, session: AuthSession): OperatorWorkspaceData {
   const dashboard = buildStaffDashboardFromDb(database, session);
+  const board = buildStaffJobsBoardFromDb(database, session);
   const operatorProfile = findOperatorProfile(database, session.userId);
 
   if (!operatorProfile) {
@@ -580,8 +648,15 @@ function buildOperatorWorkspaceFromDb(database: DemoDatabase, session: AuthSessi
     availabilityRules: getAvailabilityRules(database, session.userId),
     paymentProfile: getPaymentProfile(database, session.userId),
     notifications: dashboard.notifications,
+    recentApplications: dashboard.recentApplications,
+    recommendedJobs: dashboard.recommendedJobs,
     recentReviews: dashboard.reviews.slice(0, 6),
-    clientFeedbackQueue: dashboard.clientFeedbackQueue
+    clientFeedbackQueue: dashboard.clientFeedbackQueue,
+    savedJobs: board.items.filter((item) => item.isSaved),
+    likedJobs: board.items.filter((item) => item.isLiked),
+    dismissedJobs: board.items.filter((item) => item.isDismissed),
+    conversations: board.conversations,
+    pushSubscriptions: board.pushSubscriptions
   };
 }
 
@@ -1187,6 +1262,151 @@ export const demoStore = {
     if (didRecord) {
       writeDemoDatabase(database);
     }
+  },
+  followCompany(session: AuthSession, organizationId: string) {
+    const database = readDemoDatabase();
+
+    if (session.role !== "staff") {
+      throw new AppError("Only field-team accounts can follow companies.", "FORBIDDEN", 403);
+    }
+
+    if (!database.companyFollows.some((follow) => follow.staffId === session.userId && follow.organizationId === organizationId)) {
+      database.companyFollows.push({
+        staffId: session.userId,
+        organizationId,
+        createdAt: new Date().toISOString()
+      });
+      writeDemoDatabase(database);
+    }
+  },
+  unfollowCompany(session: AuthSession, organizationId: string) {
+    const database = readDemoDatabase();
+    database.companyFollows = database.companyFollows.filter(
+      (follow) => !(follow.staffId === session.userId && follow.organizationId === organizationId)
+    );
+    writeDemoDatabase(database);
+  },
+  likeJob(session: AuthSession, jobId: string) {
+    const database = readDemoDatabase();
+
+    if (!database.jobLikes.some((like) => like.staffId === session.userId && like.jobId === jobId)) {
+      database.jobLikes.push({
+        staffId: session.userId,
+        jobId,
+        createdAt: new Date().toISOString()
+      });
+      writeDemoDatabase(database);
+    }
+  },
+  unlikeJob(session: AuthSession, jobId: string) {
+    const database = readDemoDatabase();
+    database.jobLikes = database.jobLikes.filter((like) => !(like.staffId === session.userId && like.jobId === jobId));
+    writeDemoDatabase(database);
+  },
+  dismissJob(session: AuthSession, jobId: string) {
+    const database = readDemoDatabase();
+
+    if (!database.dismissedJobs.some((dismissedJob) => dismissedJob.staffId === session.userId && dismissedJob.jobId === jobId)) {
+      database.dismissedJobs.push({
+        staffId: session.userId,
+        jobId,
+        createdAt: new Date().toISOString()
+      });
+      writeDemoDatabase(database);
+    }
+  },
+  restoreDismissedJob(session: AuthSession, jobId: string) {
+    const database = readDemoDatabase();
+    database.dismissedJobs = database.dismissedJobs.filter(
+      (dismissedJob) => !(dismissedJob.staffId === session.userId && dismissedJob.jobId === jobId)
+    );
+    writeDemoDatabase(database);
+  },
+  sendConversationMessage(session: AuthSession, input: { organizationId: string; jobId?: string; body: string }) {
+    const database = readDemoDatabase();
+    const job = input.jobId ? database.jobs.find((item) => item.id === input.jobId) : undefined;
+    const now = new Date().toISOString();
+    let thread = database.conversationThreads.find(
+      (item) =>
+        item.organizationId === input.organizationId &&
+        item.staffId === session.userId &&
+        (input.jobId ? item.jobId === input.jobId : !item.jobId)
+    );
+
+    if (!thread) {
+      thread = {
+        id: generateId("thread"),
+        organizationId: input.organizationId,
+        staffId: session.userId,
+        jobId: input.jobId,
+        eventId: job?.eventId,
+        subject: job ? `${job.title} conversation` : "Company conversation",
+        lastMessageAt: now,
+        createdAt: now
+      };
+      database.conversationThreads.push(thread);
+    }
+
+    thread.lastMessageAt = now;
+    database.conversationMessages.push({
+      id: generateId("message"),
+      threadId: thread.id,
+      senderId: session.userId,
+      body: input.body,
+      createdAt: now
+    });
+
+    const organizationOwner = database.organizationMemberships.find((membership) => membership.organizationId === input.organizationId);
+
+    if (organizationOwner) {
+      pushNotification(
+        database,
+        {
+          userId: organizationOwner.profileId,
+          type: "company_message",
+          title: "New field-team message",
+          body: input.body,
+          href: "/dashboard/organiser"
+        },
+        { subject: "New field-team message" }
+      );
+    }
+
+    writeDemoDatabase(database);
+    return enrichConversationThread(database, thread.id);
+  },
+  registerPushSubscription(session: AuthSession, input: { endpoint: string; keys: { p256dh: string; auth: string }; userAgent?: string }) {
+    const database = readDemoDatabase();
+    const now = new Date().toISOString();
+    const existing = database.pushSubscriptions.find((subscription) => subscription.endpoint === input.endpoint);
+
+    if (existing) {
+      existing.userId = session.userId;
+      existing.p256dh = input.keys.p256dh;
+      existing.auth = input.keys.auth;
+      existing.userAgent = input.userAgent;
+      existing.updatedAt = now;
+    } else {
+      database.pushSubscriptions.push({
+        id: generateId("push"),
+        userId: session.userId,
+        endpoint: input.endpoint,
+        p256dh: input.keys.p256dh,
+        auth: input.keys.auth,
+        userAgent: input.userAgent,
+        createdAt: now,
+        updatedAt: now
+      });
+    }
+
+    writeDemoDatabase(database);
+  },
+  deletePushSubscription(session: AuthSession, endpoint: string) {
+    const database = readDemoDatabase();
+    database.pushSubscriptions = database.pushSubscriptions.filter(
+      (subscription) => !(subscription.userId === session.userId && subscription.endpoint === endpoint)
+    );
+    writeDemoDatabase(database);
   },
   updateApplicationStatus(session: AuthSession, applicationId: string, status: ApplicationStatus) {
     const database = readDemoDatabase();

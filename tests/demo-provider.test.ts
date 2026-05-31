@@ -199,4 +199,41 @@ describe("demo provider workflow", () => {
     expect(firstViews).toBe(beforeViews + 1);
     expect(secondViews).toBe(firstViews);
   });
+
+  it("preserves profile hub data alongside social job actions", async () => {
+    const provider = new DemoDataProvider();
+
+    await provider.signIn({
+      email: "ava.morgan@demo.staffbook.app",
+      password: "Password123!"
+    });
+
+    await provider.followCompany("org_ember");
+    await provider.likeJob("job_3");
+    await provider.dismissJob("job_4");
+    await provider.registerPushSubscription({
+      endpoint: "https://push.example.test/subscription",
+      keys: { p256dh: "demo-p256dh", auth: "demo-auth" },
+      userAgent: "vitest"
+    });
+    await provider.sendConversationMessage({
+      organizationId: "org_ember",
+      jobId: "job_3",
+      body: "I can cover this role."
+    });
+
+    const board = await provider.getStaffJobsBoard();
+    const workspace = await provider.getOperatorWorkspace();
+
+    expect(board.items.find((item) => item.job.id === "job_3")?.isLiked).toBe(true);
+    expect(board.items.find((item) => item.job.id === "job_4")?.isDismissed).toBe(true);
+    expect(board.followedOrganizations.some((follow) => follow.organizationId === "org_ember")).toBe(true);
+    expect(board.pushSubscriptions).toHaveLength(1);
+    expect(board.conversations.some((thread) => thread.organization.id === "org_ember")).toBe(true);
+    expect(workspace.performanceSummary.reviewCount).toBeGreaterThan(0);
+    expect(workspace.recentApplications.length).toBeGreaterThan(0);
+    expect(workspace.savedJobs.length + workspace.likedJobs.length).toBeGreaterThan(0);
+    expect(workspace.paymentProfile.onboardingStatus).toBeDefined();
+    expect(workspace.marketingPreference.profileId).toBe("user_staff_1");
+  });
 });

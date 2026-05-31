@@ -3,6 +3,8 @@ import type {
   AuthSession,
   BrowseJobsFilters,
   JobAlert,
+  EnrichedConversationThread,
+  StaffJobsBoardItem,
   JobStatus,
   LandingHighlights,
   Notification,
@@ -63,6 +65,17 @@ export interface StaffBookDataProvider {
   unsaveJob(jobId: string): Promise<void>;
   upsertJobAlert(input: JobAlertInput): Promise<JobAlert>;
   deleteJobAlert(alertId: string): Promise<void>;
+  getSocialJobFeed(): Promise<StaffJobsBoardData>;
+  followCompany(organizationId: string): Promise<void>;
+  unfollowCompany(organizationId: string): Promise<void>;
+  likeJob(jobId: string): Promise<void>;
+  unlikeJob(jobId: string): Promise<void>;
+  dismissJob(jobId: string): Promise<void>;
+  restoreDismissedJob(jobId: string): Promise<void>;
+  getConversationThreads(): Promise<EnrichedConversationThread[]>;
+  sendConversationMessage(input: { organizationId: string; jobId?: string; body: string }): Promise<EnrichedConversationThread>;
+  registerPushSubscription(input: { endpoint: string; keys: { p256dh: string; auth: string }; userAgent?: string }): Promise<void>;
+  deletePushSubscription(endpoint: string): Promise<void>;
   updateApplicationStatus(applicationId: string, status: ApplicationStatus): Promise<{ warning?: string }>;
   markEventCompleted(eventId: string): Promise<void>;
   submitOperatorReview(input: OperatorReviewInput): Promise<Rating>;

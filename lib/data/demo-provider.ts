@@ -162,6 +162,10 @@ export class DemoDataProvider implements StaffBookDataProvider {
     return demoStore.getStaffJobsBoard(session);
   }
 
+  async getSocialJobFeed() {
+    return this.getStaffJobsBoard();
+  }
+
   async getOperatorWorkspace() {
     const session = getDemoSessionFromStorage();
 
@@ -290,6 +294,106 @@ export class DemoDataProvider implements StaffBookDataProvider {
     }
 
     demoStore.recordJobView(session, jobId);
+  }
+
+  async followCompany(organizationId: string) {
+    const session = getDemoSessionFromStorage();
+
+    if (!session || session.role !== "staff") {
+      throw new AppError("You must sign in as staff.", "UNAUTHENTICATED", 401);
+    }
+
+    demoStore.followCompany(session, organizationId);
+  }
+
+  async unfollowCompany(organizationId: string) {
+    const session = getDemoSessionFromStorage();
+
+    if (!session || session.role !== "staff") {
+      throw new AppError("You must sign in as staff.", "UNAUTHENTICATED", 401);
+    }
+
+    demoStore.unfollowCompany(session, organizationId);
+  }
+
+  async likeJob(jobId: string) {
+    const session = getDemoSessionFromStorage();
+
+    if (!session || session.role !== "staff") {
+      throw new AppError("You must sign in as staff.", "UNAUTHENTICATED", 401);
+    }
+
+    demoStore.likeJob(session, jobId);
+  }
+
+  async unlikeJob(jobId: string) {
+    const session = getDemoSessionFromStorage();
+
+    if (!session || session.role !== "staff") {
+      throw new AppError("You must sign in as staff.", "UNAUTHENTICATED", 401);
+    }
+
+    demoStore.unlikeJob(session, jobId);
+  }
+
+  async dismissJob(jobId: string) {
+    const session = getDemoSessionFromStorage();
+
+    if (!session || session.role !== "staff") {
+      throw new AppError("You must sign in as staff.", "UNAUTHENTICATED", 401);
+    }
+
+    demoStore.dismissJob(session, jobId);
+  }
+
+  async restoreDismissedJob(jobId: string) {
+    const session = getDemoSessionFromStorage();
+
+    if (!session || session.role !== "staff") {
+      throw new AppError("You must sign in as staff.", "UNAUTHENTICATED", 401);
+    }
+
+    demoStore.restoreDismissedJob(session, jobId);
+  }
+
+  async getConversationThreads() {
+    const session = getDemoSessionFromStorage();
+
+    if (!session) {
+      throw new AppError("You must sign in first.", "UNAUTHENTICATED", 401);
+    }
+
+    return demoStore.getStaffJobsBoard(session).conversations;
+  }
+
+  async sendConversationMessage(input: { organizationId: string; jobId?: string; body: string }) {
+    const session = getDemoSessionFromStorage();
+
+    if (!session || session.role !== "staff") {
+      throw new AppError("You must sign in as staff.", "UNAUTHENTICATED", 401);
+    }
+
+    return demoStore.sendConversationMessage(session, input);
+  }
+
+  async registerPushSubscription(input: { endpoint: string; keys: { p256dh: string; auth: string }; userAgent?: string }) {
+    const session = getDemoSessionFromStorage();
+
+    if (!session) {
+      throw new AppError("You must sign in first.", "UNAUTHENTICATED", 401);
+    }
+
+    demoStore.registerPushSubscription(session, input);
+  }
+
+  async deletePushSubscription(endpoint: string) {
+    const session = getDemoSessionFromStorage();
+
+    if (!session) {
+      throw new AppError("You must sign in first.", "UNAUTHENTICATED", 401);
+    }
+
+    demoStore.deletePushSubscription(session, endpoint);
   }
 
   async updateApplicationStatus(applicationId: string, status: ApplicationStatus): Promise<{ warning?: string }> {

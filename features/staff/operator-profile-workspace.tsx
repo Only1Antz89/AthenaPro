@@ -18,6 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useQueryState } from "@/features/app/use-query-state";
 import { useStaffBook } from "@/features/app/use-staffbook";
 import { toDisplayError } from "@/lib/errors";
+import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   updateEmailSchema,
   updateMarketingPreferencesSchema,
@@ -27,6 +28,31 @@ import {
 } from "@/lib/validation/schemas";
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const PROFILE_SECTIONS = [
+  "Overview",
+  "Applications",
+  "Saved & liked",
+  "Earnings",
+  "Ratings & reviews",
+  "Availability",
+  "Profile",
+  "Messages",
+  "Notifications",
+  "Payments",
+  "Security",
+  "Marketing"
+] as const;
+
+type ProfileSection = (typeof PROFILE_SECTIONS)[number];
+
+function getEstimatedApplicationPay(application: { job: { shiftStart: string; shiftEnd: string; payRate: number } }) {
+  const hours = Math.max(
+    (new Date(application.job.shiftEnd).getTime() - new Date(application.job.shiftStart).getTime()) / (1000 * 60 * 60),
+    0
+  );
+
+  return hours * application.job.payRate;
+}
 
 export function OperatorProfileWorkspace() {
   const { provider, session, loading } = useStaffBook();
@@ -65,6 +91,7 @@ export function OperatorProfileWorkspace() {
   });
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [activeSection, setActiveSection] = useState<ProfileSection>("Overview");
 
   useEffect(() => {
     if (!workspace.data) {
@@ -161,9 +188,149 @@ export function OperatorProfileWorkspace() {
         title={workspace.data.profile.fullName}
         description="Update your profile, control your weekly availability, review your category performance, and manage security and payout readiness."
       >
-        <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="-mx-4 mb-6 overflow-x-auto px-4 pb-2">
+          <div className="flex min-w-max gap-2">
+            {PROFILE_SECTIONS.map((section) => (
+              <button
+                key={section}
+                type="button"
+                onClick={() => setActiveSection(section)}
+                className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                  activeSection === section
+                    ? "bg-lime-300 text-canvas"
+                    : "border border-white/10 bg-white/[0.03] text-slate hover:text-ink"
+                }`}
+              >
+                {section}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {activeSection === "Overview" ? (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <Card className="rounded-lg border-lime-300/20">
+              <p className="text-sm text-slate">Overall score</p>
+              <p className="mt-2 text-3xl font-semibold text-ink">
+                {workspace.data.performanceSummary.overallRating.toFixed(1)}
+              </p>
+              <p className="mt-2 text-xs text-slate">Rating band {workspace.data.performanceSummary.ratingBand}★</p>
+            </Card>
+            <Card className="rounded-lg border-cyan-300/20">
+              <p className="text-sm text-slate">Applications tracked</p>
+              <p className="mt-2 text-3xl font-semibold text-ink">{workspace.data.recentApplications.length}</p>
+              <p className="mt-2 text-xs text-slate">Recent role applications and statuses.</p>
+            </Card>
+            <Card className="rounded-lg border-rose-300/20">
+              <p className="text-sm text-slate">Saved and liked</p>
+              <p className="mt-2 text-3xl font-semibold text-ink">
+                {workspace.data.savedJobs.length + workspace.data.likedJobs.length}
+              </p>
+              <p className="mt-2 text-xs text-slate">Jobs kept for later review.</p>
+            </Card>
+            <Card className="rounded-lg border-yellow-300/20">
+              <p className="text-sm text-slate">Estimated earnings</p>
+              <p className="mt-2 text-3xl font-semibold text-ink">
+                £
+                {workspace.data.recentApplications
+                  .filter((application) => application.status === "accepted")
+                  .reduce((sum, application) => sum + getEstimatedApplicationPay(application), 0)
+                  .toFixed(0)}
+              </p>
+              <p className="mt-2 text-xs text-slate">Estimated from accepted jobs, not confirmed payout.</p>
+            </Card>
+          </div>
+        ) : null}
+
+        {activeSection === "Applications" ? (
+          <Card className="mt-6 rounded-lg">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate">Applications</p>
+            <div className="mt-5 space-y-3">
+              {workspace.data.recentApplications.map((application) => (
+                <div key={application.id} className="rounded-lg border border-white/10 bg-white/[0.03] p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="font-semibold text-ink">{application.job.title}</p>
+                      <p className="text-sm text-slate">
+                        {application.organization.name} • {application.event.location} • {formatDate(application.event.eventDate)}
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-lime-300/15 px-3 py-1 text-sm text-lime-200">
+                      {application.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        ) : null}
+
+        {activeSection === "Saved & liked" ? (
+          <Card className="mt-6 rounded-lg">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate">Saved and liked jobs</p>
+            <div className="mt-5 grid gap-3 md:grid-cols-2">
+              {[...workspace.data.savedJobs, ...workspace.data.likedJobs].map((item) => (
+                <div key={`${item.job.id}-${item.isSaved}-${item.isLiked}`} className="rounded-lg border border-white/10 bg-white/[0.03] p-4">
+                  <p className="font-semibold text-ink">{item.job.title}</p>
+                  <p className="mt-1 text-sm text-slate">
+                    {item.job.organization.name} • {formatCurrency(item.job.payRate)}/hr
+                  </p>
+                </div>
+              ))}
+              {workspace.data.savedJobs.length + workspace.data.likedJobs.length === 0 ? (
+                <p className="text-sm text-slate">Saved and liked jobs will appear here.</p>
+              ) : null}
+            </div>
+          </Card>
+        ) : null}
+
+        {activeSection === "Earnings" ? (
+          <Card className="mt-6 rounded-lg">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate">Estimated earnings</p>
+            <h2 className="mt-3 text-2xl font-semibold text-ink">Accepted work estimate</h2>
+            <p className="mt-2 text-sm text-slate">These figures use accepted job hours and rates. They are not confirmed payout records.</p>
+            <div className="mt-5 space-y-3">
+              {workspace.data.recentApplications
+                .filter((application) => application.status === "accepted")
+                .map((application) => (
+                  <div key={application.id} className="flex items-center justify-between gap-4 rounded-lg border border-white/10 bg-white/[0.03] p-4">
+                    <div>
+                      <p className="font-semibold text-ink">{application.job.title}</p>
+                      <p className="text-sm text-slate">{application.organization.name}</p>
+                    </div>
+                    <p className="font-semibold text-lime-200">{formatCurrency(getEstimatedApplicationPay(application))}</p>
+                  </div>
+                ))}
+            </div>
+          </Card>
+        ) : null}
+
+        {activeSection === "Messages" ? (
+          <Card className="mt-6 rounded-lg">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate">Messages</p>
+            <div className="mt-5 space-y-3">
+              {workspace.data.conversations.length === 0 ? (
+                <p className="text-sm text-slate">Company messages and event communications will appear here.</p>
+              ) : (
+                workspace.data.conversations.map((thread) => (
+                  <div key={thread.id} className="rounded-lg border border-white/10 bg-white/[0.03] p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="font-semibold text-ink">{thread.subject}</p>
+                      {thread.unreadCount ? <span className="rounded-full bg-cyan-300 px-2 py-1 text-xs text-canvas">{thread.unreadCount}</span> : null}
+                    </div>
+                    <p className="mt-1 text-sm text-slate">{thread.organization.name}</p>
+                    <p className="mt-3 text-sm text-slate">{thread.messages.at(-1)?.body ?? "No messages yet."}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </Card>
+        ) : null}
+
+        {(["Profile", "Availability", "Ratings & reviews", "Marketing", "Security", "Payments", "Notifications"] as ProfileSection[]).includes(activeSection) ? (
+        <div className="mt-6 grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="space-y-6">
-            <Card>
+            {activeSection === "Profile" ? <Card>
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate">Profile</p>
               <div className="mt-5 grid gap-4 md:grid-cols-2">
                 <Field label="Name">
@@ -219,9 +386,9 @@ export function OperatorProfileWorkspace() {
               >
                 Save profile
               </Button>
-            </Card>
+            </Card> : null}
 
-            <Card>
+            {activeSection === "Availability" ? <Card>
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate">Availability</p>
@@ -345,11 +512,11 @@ export function OperatorProfileWorkspace() {
               >
                 Save availability
               </Button>
-            </Card>
+            </Card> : null}
           </div>
 
           <div className="space-y-6">
-            <Card>
+            {activeSection === "Ratings & reviews" ? <Card>
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate">Performance</p>
               <div className="mt-5 space-y-4">
                 <PerformanceBar label="Reliability" value={workspace.data.performanceSummary.categoryRatings.reliability} />
@@ -371,9 +538,9 @@ export function OperatorProfileWorkspace() {
                   Recent reviews have put you near a lower band threshold.
                 </p>
               ) : null}
-            </Card>
+            </Card> : null}
 
-            <Card>
+            {activeSection === "Marketing" ? <Card>
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate">Email preferences</p>
               <div className="mt-5 space-y-4">
                 <div className="flex items-start gap-3">
@@ -434,9 +601,9 @@ export function OperatorProfileWorkspace() {
               >
                 Save email preferences
               </Button>
-            </Card>
+            </Card> : null}
 
-            <Card>
+            {activeSection === "Security" ? <Card>
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate">Security</p>
               <div className="mt-5 space-y-4">
                 <Field label="Email">
@@ -481,9 +648,9 @@ export function OperatorProfileWorkspace() {
                   Change password
                 </Button>
               </div>
-            </Card>
+            </Card> : null}
 
-            <Card>
+            {activeSection === "Payments" ? <Card>
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate">Payments</p>
               <h2 className="mt-3 text-2xl font-semibold text-ink">Stripe foundation</h2>
               <p className="mt-3 text-sm text-slate">
@@ -495,11 +662,12 @@ export function OperatorProfileWorkspace() {
               <p className="mt-4 text-sm text-slate">
                 Raw bank or card details are not stored in this phase. This section is the payout-readiness foundation for Stripe-backed onboarding.
               </p>
-            </Card>
+            </Card> : null}
 
-            <NotificationsList notifications={workspace.data.notifications} title="Inbox" />
+            {activeSection === "Notifications" ? <NotificationsList notifications={workspace.data.notifications} title="Inbox" /> : null}
           </div>
         </div>
+        ) : null}
       </DashboardShell>
     </main>
   );

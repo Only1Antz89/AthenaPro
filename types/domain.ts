@@ -15,7 +15,12 @@ export type NotificationType =
   | "job_match"
   | "operator_match"
   | "client_feedback_due"
-  | "job_alert";
+  | "job_alert"
+  | "company_message"
+  | "event_pre_day"
+  | "event_on_day"
+  | "event_post_event"
+  | "company_job_posted";
 export type NotificationEmailStatus = "queued" | "processing" | "sent" | "failed";
 export type JobBoardSort = "newest" | "soonest" | "pay" | "match" | "trending";
 export type ClientFeedbackReason =
@@ -187,6 +192,74 @@ export interface JobAlert {
   emailOptIn: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CompanyFollow {
+  staffId: string;
+  organizationId: string;
+  createdAt: string;
+}
+
+export interface JobLike {
+  staffId: string;
+  jobId: string;
+  createdAt: string;
+}
+
+export interface DismissedJob {
+  staffId: string;
+  jobId: string;
+  createdAt: string;
+}
+
+export interface JobMediaSlide {
+  id: string;
+  jobId: string;
+  organizationId: string;
+  imageUrl: string;
+  altText?: string;
+  caption?: string;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface ConversationThread {
+  id: string;
+  organizationId: string;
+  staffId: string;
+  jobId?: string;
+  eventId?: string;
+  applicationId?: string;
+  subject: string;
+  lastMessageAt: string;
+  createdAt: string;
+}
+
+export interface ConversationMessage {
+  id: string;
+  threadId: string;
+  senderId: string;
+  body: string;
+  createdAt: string;
+  readAt?: string;
+}
+
+export interface PushSubscriptionRecord {
+  id: string;
+  userId: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  userAgent?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EnrichedConversationThread extends ConversationThread {
+  organization: Organization;
+  job?: EnrichedJob;
+  messages: ConversationMessage[];
+  unreadCount: number;
 }
 
 export interface PerformanceCategoryScores {
@@ -402,6 +475,10 @@ export interface StaffJobsBoardItem {
   applicationId?: string;
   applicationStatus?: ApplicationStatus;
   isSaved: boolean;
+  isLiked: boolean;
+  isDismissed: boolean;
+  isFollowingCompany: boolean;
+  mediaSlides: JobMediaSlide[];
   matchScore: number;
   matchReasons: string[];
   trendingScore: number;
@@ -414,6 +491,9 @@ export interface StaffJobsBoardData {
   operatorProfile: OperatorProfile | null;
   items: StaffJobsBoardItem[];
   alerts: JobAlert[];
+  followedOrganizations: CompanyFollow[];
+  conversations: EnrichedConversationThread[];
+  pushSubscriptions: PushSubscriptionRecord[];
 }
 
 export interface OperatorWorkspaceData {
@@ -425,8 +505,15 @@ export interface OperatorWorkspaceData {
   availabilityRules: OperatorAvailabilityRule[];
   paymentProfile: OperatorPaymentProfile;
   notifications: Notification[];
+  recentApplications: EnrichedApplication[];
+  recommendedJobs: SuggestedJob[];
   recentReviews: OperatorReview[];
   clientFeedbackQueue: EnrichedApplication[];
+  savedJobs: StaffJobsBoardItem[];
+  likedJobs: StaffJobsBoardItem[];
+  dismissedJobs: StaffJobsBoardItem[];
+  conversations: EnrichedConversationThread[];
+  pushSubscriptions: PushSubscriptionRecord[];
 }
 
 export interface DemoDatabase {
@@ -443,6 +530,13 @@ export interface DemoDatabase {
   jobViewEvents: JobViewEvent[];
   savedJobs: SavedJob[];
   jobAlerts: JobAlert[];
+  companyFollows: CompanyFollow[];
+  jobLikes: JobLike[];
+  dismissedJobs: DismissedJob[];
+  jobMediaSlides: JobMediaSlide[];
+  conversationThreads: ConversationThread[];
+  conversationMessages: ConversationMessage[];
+  pushSubscriptions: PushSubscriptionRecord[];
   ratings: OperatorReview[];
   clientFeedback: ClientFeedback[];
   notifications: Notification[];

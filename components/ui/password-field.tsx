@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, EyeOff } from "lucide-react";
+import { Check, Eye, EyeOff } from "lucide-react";
 import { useMemo, useState } from "react";
 import { PASSWORD_REQUIREMENTS, evaluatePasswordRequirements } from "@/lib/validation/password";
 import { cn } from "@/lib/utils";
@@ -58,19 +58,29 @@ export function PasswordChecklist({
   const resolvedRequirements = requirements ?? evaluatePasswordRequirements(value);
 
   return (
-    <div className="rounded-[18px] border border-line/70 bg-surfaceRaised/70 p-4">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate">Password requirements</p>
+    <div className="rounded-lg border border-lime-300/25 bg-lime-300/[0.04] p-4 shadow-[0_18px_60px_rgba(132,204,22,0.08)]">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-lime-100">Password requirements</p>
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
         {resolvedRequirements.map((requirement, index) => (
-          <p
+          <div
             key={PASSWORD_REQUIREMENTS[index].id}
             className={cn(
-              "text-xs transition",
-              requirement.met ? "text-accent" : "text-slate/80"
+              "flex items-center gap-2 text-sm transition",
+              requirement.met ? "font-medium text-lime-200" : "text-slate/75"
             )}
           >
-            {requirement.met ? "✓" : "•"} {requirement.label}
-          </p>
+            <span
+              className={cn(
+                "inline-flex h-5 w-5 items-center justify-center rounded-full border",
+                requirement.met
+                  ? "border-lime-300 bg-lime-300 text-[#08100a]"
+                  : "border-line/80 text-slate/60"
+              )}
+            >
+              {requirement.met ? <Check className="h-3.5 w-3.5" /> : null}
+            </span>
+            {requirement.label}
+          </div>
         ))}
       </div>
     </div>

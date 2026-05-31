@@ -33,8 +33,8 @@ export const ENTITY_LABELS = {
   jobs: "Job Board",
   ratings: "Delivery scores",
   staffDirectory: "Field team directory",
-  placements: "Confirmed deployments",
-  applications: "Deployment requests",
+  placements: "Confirmed jobs",
+  applications: "Applications",
   liveJobs: "Live jobs"
 } as const;
 

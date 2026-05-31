@@ -1,7 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { SiteHeader } from "@/components/layout/site-header";
 import { Button } from "@/components/ui/button";
@@ -122,8 +123,11 @@ function requiredLabel(label: string) {
 
 export function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { provider, refreshSession } = useStaffBook();
-  const [role, setRole] = useState<"organiser" | "staff">("organiser");
+  const [role, setRole] = useState<"organiser" | "staff">(
+    searchParams.get("type") === "field-team" ? "staff" : "organiser"
+  );
   const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([]);
   const [availabilityDays, setAvailabilityDays] = useState<AvailabilityDayState[]>(() => createAvailabilityState());
   const [useSharedHours, setUseSharedHours] = useState(true);
@@ -162,6 +166,10 @@ export function SignupForm() {
 
   const allAvailabilityDaysSelected = availabilityDays.every((day) => day.selected);
 
+  useEffect(() => {
+    setRole(searchParams.get("type") === "field-team" ? "staff" : "organiser");
+  }, [searchParams]);
+
   function toggleAllAvailabilityDays(checked: boolean) {
     setAvailabilityDays((current) =>
       current.map((day) => ({
@@ -174,14 +182,49 @@ export function SignupForm() {
   return (
     <main>
       <SiteHeader />
-      <section className="flex min-h-[calc(100svh-72px)] items-center justify-center px-4 py-8 sm:min-h-[calc(100svh-80px)] sm:px-6 sm:py-12">
-        <Card className="w-full max-w-5xl">
+      <section
+        className={
+          role === "staff"
+            ? "min-h-[calc(100svh-72px)] bg-[linear-gradient(160deg,rgba(163,230,53,0.12),transparent_28%),linear-gradient(20deg,rgba(34,211,238,0.12),transparent_34%)] px-4 py-8 sm:min-h-[calc(100svh-80px)] sm:px-6 sm:py-12"
+            : "flex min-h-[calc(100svh-72px)] items-center justify-center px-4 py-8 sm:min-h-[calc(100svh-80px)] sm:px-6 sm:py-12"
+        }
+      >
+        <Card className={role === "staff" ? "mx-auto w-full max-w-6xl overflow-hidden rounded-lg border-lime-300/20" : "w-full max-w-5xl"}>
+          <div className={role === "staff" ? "mb-6 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]" : ""}>
+            {role === "staff" ? (
+              <div className="rounded-lg bg-[linear-gradient(180deg,rgba(8,10,12,0.1),rgba(8,10,12,0.65)),url('https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1200&q=80')] bg-cover bg-center p-6">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-lime-200">Field-team access</p>
+                <h1 className="mt-4 font-display text-4xl font-semibold text-white sm:text-5xl">
+                  Build your festival work feed.
+                </h1>
+                <p className="mt-4 text-sm leading-7 text-white/80">
+                  Create a profile for live-event jobs, role applications, company messages, ratings, and earnings visibility.
+                </p>
+              </div>
+            ) : null}
+            <div>
           <h1 className="text-balance font-display text-3xl font-semibold tracking-[-0.05em] text-ink sm:text-4xl">
-            Request access to {BRAND.name}
+            {role === "organiser" ? `Company access to ${BRAND.name}` : "Create field-team profile"}
           </h1>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-slate">
-            Company accounts post jobs. Field-team accounts find and manage work.
+            {role === "organiser"
+              ? "Company accounts post jobs, manage applications, message field team, and track event delivery."
+              : "Field-team accounts browse live jobs, apply for roles, save companies, and manage profile standing."}
           </p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <Link href="/auth/signup?type=company">
+              <Button type="button" variant={role === "organiser" ? "accent" : "secondary"} className="w-full">
+                Company sign up
+              </Button>
+            </Link>
+            <Link href="/auth/signup?type=field-team">
+              <Button type="button" variant={role === "staff" ? "accent" : "secondary"} className="w-full">
+                Field-team sign up
+              </Button>
+            </Link>
+          </div>
+            </div>
+          </div>
           <form
             className="mt-6 space-y-4 sm:mt-8"
             onSubmit={async (event) => {
@@ -254,12 +297,6 @@ export function SignupForm() {
             }}
           >
             <div className="grid items-start gap-5 lg:grid-cols-2">
-              <Field label="Access type">
-                <Select value={role} onChange={(event) => setRole(event.target.value as "organiser" | "staff")}>
-                  <option value="organiser">Company</option>
-                  <option value="staff">Field Team</option>
-                </Select>
-              </Field>
               <Field label={requiredLabel("Full name")}>
                 <Input value={form.fullName} onChange={(event) => update("fullName", event.target.value)} />
               </Field>
