@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BriefcaseBusiness, Building2, Menu, UserCircle, UsersRound, X } from "lucide-react";
+import { BriefcaseBusiness, Menu, UserCircle, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/page-container";
@@ -19,7 +19,6 @@ export function SiteHeader() {
     { href: "/jobs", label: "Find Roles" },
     { href: "/services", label: "For Companies" },
     { href: "/staff", label: "How It Works" },
-    { href: "/pricing", label: "Resources" },
     { href: "/about", label: NAV_LABELS.about },
     ...(session
       ? [
@@ -94,23 +93,9 @@ export function SiteHeader() {
               </Button>
             </>
           ) : (
-            <>
-              <Link href="/auth/signup?type=field-team">
-                <Button variant="accent" className="gap-2 bg-lime-300 text-black hover:bg-lime-200">
-                  <UsersRound className="h-4 w-4" />
-                  Field-team sign up
-                </Button>
-              </Link>
-              <Link href="/auth/signup?type=company">
-                <Button variant="accent" className="gap-2 bg-rose-400 text-black hover:bg-rose-300">
-                  <Building2 className="h-4 w-4" />
-                  Company sign up
-                </Button>
-              </Link>
-              <Link href="/auth/login">
-                <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white">{NAV_LABELS.login}</Button>
-              </Link>
-            </>
+            <Link href="/auth/login">
+              <Button variant="accent" className="bg-lime-300 text-black hover:bg-lime-200">{NAV_LABELS.login}</Button>
+            </Link>
           )}
         </div>
 
@@ -181,18 +166,8 @@ export function SiteHeader() {
                 </div>
               ) : (
                 <div className="grid gap-3">
-                  <Link href="/auth/signup?type=field-team" className="block">
-                    <Button variant="accent" className="w-full bg-lime-300 text-black">
-                      Field-team sign up
-                    </Button>
-                  </Link>
-                  <Link href="/auth/signup?type=company" className="block">
-                    <Button variant="accent" className="w-full bg-rose-400 text-black">
-                      Company sign up
-                    </Button>
-                  </Link>
                   <Link href="/auth/login" className="block">
-                    <Button variant="secondary" className="w-full">
+                    <Button variant="accent" className="w-full bg-lime-300 text-black">
                       {NAV_LABELS.login}
                     </Button>
                   </Link>
