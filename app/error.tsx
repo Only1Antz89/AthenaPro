@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { BRAND } from "@/lib/brand";
 
 export default function GlobalError({
   error,
@@ -16,12 +17,14 @@ export default function GlobalError({
 
   return (
     <html>
-      <body className="flex min-h-screen items-center justify-center bg-slate-50 px-6">
-        <div className="max-w-lg rounded-[28px] bg-white p-10 shadow-panel">
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-accent">Application error</p>
-          <h1 className="mt-4 font-display text-4xl font-semibold text-ink">Something failed unexpectedly</h1>
+      <body className="flex min-h-screen items-center justify-center bg-canvas px-6">
+        <div className="panel-shell max-w-lg rounded-[32px] p-10">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate">{BRAND.name}</p>
+          <h1 className="mt-4 font-display text-4xl font-semibold tracking-[-0.05em] text-ink">
+            Something failed unexpectedly
+          </h1>
           <p className="mt-4 text-sm text-slate">
-            The app hit an error boundary. Reset will retry the current route.
+            The workspace hit an error boundary. Retry will reload the current route.
           </p>
           <Button className="mt-6" onClick={reset}>
             Retry

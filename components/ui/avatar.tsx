@@ -17,7 +17,7 @@ export function Avatar({
 
   return (
     <div
-      className={`inline-flex ${dimensions} items-center justify-center rounded-full bg-gradient-to-br from-accent to-teal-400 font-semibold text-white`}
+      className={`inline-flex ${dimensions} items-center justify-center rounded-full border border-line/60 bg-gradient-to-br from-accent/90 to-surfaceRaised font-semibold text-ink`}
     >
       {initials}
     </div>

@@ -1,7 +1,50 @@
-import type { RankedStaffRow, Rating, Profile, StaffRatingSummary } from "@/types/domain";
+import { getRankBadge } from "@/lib/brand";
 import { average } from "@/lib/utils";
+import type {
+  OperatorPerformanceSummary,
+  PerformanceCategoryScores,
+  Profile,
+  RankedStaffRow,
+  Rating
+} from "@/types/domain";
 
 export const BAYESIAN_C = 5;
+
+const EMPTY_CATEGORY_SCORES: PerformanceCategoryScores = {
+  reliability: 0,
+  professionalism: 0,
+  communication: 0,
+  customerService: 0,
+  pressureHandling: 0
+};
+
+function getGlobalMean(ratings: Rating[]) {
+  return average(ratings.map((item) => item.overallScore ?? item.rating)) || 4.2;
+}
+
+function getThresholdForBand(band: number) {
+  if (band >= 5) {
+    return 4.75;
+  }
+
+  if (band === 4) {
+    return 3.75;
+  }
+
+  if (band === 3) {
+    return 2.75;
+  }
+
+  if (band === 2) {
+    return 1.75;
+  }
+
+  if (band === 1) {
+    return 0.75;
+  }
+
+  return 0;
+}
 
 export function calculateWeightedRating(
   averageRating: number,
@@ -13,30 +56,90 @@ export function calculateWeightedRating(
     return globalMean;
   }
 
-  return (
-    (averageRating * reviewCount + globalMean * confidence) /
-    (reviewCount + confidence)
+  return (averageRating * reviewCount + globalMean * confidence) / (reviewCount + confidence);
+}
+
+export function getRatingBand(overallRating: number) {
+  if (overallRating >= 4.75) {
+    return 5;
+  }
+
+  if (overallRating >= 3.75) {
+    return 4;
+  }
+
+  if (overallRating >= 2.75) {
+    return 3;
+  }
+
+  if (overallRating >= 1.75) {
+    return 2;
+  }
+
+  if (overallRating >= 0.75) {
+    return 1;
+  }
+
+  return 0;
+}
+
+export function buildPerformanceSummary(
+  staffId: string,
+  ratings: Rating[],
+  globalMean = getGlobalMean(ratings)
+): OperatorPerformanceSummary {
+  const ownRatings = ratings
+    .filter((item) => item.staffId === staffId)
+    .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime());
+  const reviewCount = ownRatings.length;
+  const averageRating = average(ownRatings.map((item) => item.overallScore ?? item.rating));
+  const weightedScore = calculateWeightedRating(averageRating, reviewCount, globalMean);
+  const categoryRatings: PerformanceCategoryScores = reviewCount
+    ? {
+        reliability: average(ownRatings.map((item) => item.reliabilityScore)),
+        professionalism: average(ownRatings.map((item) => item.professionalismScore)),
+        communication: average(ownRatings.map((item) => item.communicationScore)),
+        customerService: average(ownRatings.map((item) => item.customerServiceScore)),
+        pressureHandling: average(ownRatings.map((item) => item.pressureHandlingScore))
+      }
+    : EMPTY_CATEGORY_SCORES;
+  const ratingBand = getRatingBand(weightedScore);
+  const nextBandThreshold = getThresholdForBand(Math.min(ratingBand + 1, 5));
+  const currentBandFloor = getThresholdForBand(ratingBand);
+  const lastTwoAverage = average(
+    ownRatings
+      .slice(0, 2)
+      .map((item) => item.overallScore ?? item.rating)
   );
+
+  return {
+    staffId,
+    overallRating: weightedScore,
+    averageRating,
+    reviewCount,
+    weightedScore,
+    categoryRatings,
+    ratingBand,
+    promotionDue:
+      ratingBand < 5 &&
+      nextBandThreshold - weightedScore <= 0.25 &&
+      lastTwoAverage >= nextBandThreshold,
+    demotionRisk:
+      ratingBand > 0 &&
+      weightedScore - currentBandFloor <= 0.25 &&
+      lastTwoAverage > 0 &&
+      lastTwoAverage <= 2.5,
+    lastTwoAverage
+  };
 }
 
 export function buildRatingSummaries(
   staffProfiles: Profile[],
   ratings: Rating[]
-): StaffRatingSummary[] {
-  const globalMean = average(ratings.map((item) => item.rating)) || 4.2;
+): OperatorPerformanceSummary[] {
+  const globalMean = getGlobalMean(ratings);
 
-  return staffProfiles.map((profile) => {
-    const ownRatings = ratings.filter((item) => item.staffId === profile.id);
-    const averageRating = average(ownRatings.map((item) => item.rating));
-    const reviewCount = ownRatings.length;
-
-    return {
-      staffId: profile.id,
-      averageRating,
-      reviewCount,
-      weightedScore: calculateWeightedRating(averageRating, reviewCount, globalMean)
-    };
-  });
+  return staffProfiles.map((profile) => buildPerformanceSummary(profile.id, ratings, globalMean));
 }
 
 export function buildRankedStaff(
@@ -70,7 +173,6 @@ export function buildRankedStaff(
     .map((item, index) => ({
       ...item,
       rank: index + 1,
-      topBadge:
-        index === 0 ? "Top Rated" : index < 3 ? "Reliable" : index < 6 ? "Rising" : undefined
+      topBadge: getRankBadge(index + 1)
     }));
 }

@@ -1,22 +1,32 @@
 import { demoStore } from "@/lib/data/demo-store";
 import { AppError } from "@/lib/errors";
 import { getDemoSessionFromStorage, setDemoSession } from "@/lib/auth/demo-session";
+import { filterJobs } from "@/lib/domain/jobs-board";
 import type { StaffBookDataProvider } from "@/lib/data/contracts";
 import type {
   ApplicationStatus,
   AuthSession,
   BrowseJobsFilters,
+  JobStatus,
   Profile,
   StaffDirectoryFilters
 } from "@/types/domain";
 import type {
+  ClientFeedbackInput,
   CreateEventInput,
   CreateJobInput,
   JobApplicationInput,
+  JobAlertInput,
   LoginInput,
+  OperatorReviewInput,
   OrganiserSignupInput,
-  StaffRatingInput,
-  StaffSignupInput
+  PasswordResetRequestInput,
+  StaffSignupInput,
+  UpdateEmailInput,
+  UpdateMarketingPreferencesInput,
+  UpdateOperatorAvailabilityInput,
+  UpdateOperatorProfileInput,
+  UpdatePasswordInput
 } from "@/lib/validation/schemas";
 
 export class DemoDataProvider implements StaffBookDataProvider {
@@ -80,9 +90,18 @@ export class DemoDataProvider implements StaffBookDataProvider {
     setDemoSession(null);
   }
 
+  async requestPasswordReset(_input: PasswordResetRequestInput, _redirectTo: string) {
+    return;
+  }
+
   async getCurrentProfile(): Promise<Profile | null> {
     const session = getDemoSessionFromStorage();
     return session ? (demoStore.getSessionUser(session) ?? null) : null;
+  }
+
+  async getCurrentOperatorProfile() {
+    const session = getDemoSessionFromStorage();
+    return session ? (demoStore.getOperatorProfile(session) ?? null) : null;
   }
 
   async getLandingHighlights() {
@@ -90,22 +109,7 @@ export class DemoDataProvider implements StaffBookDataProvider {
   }
 
   async getJobs(filters?: BrowseJobsFilters) {
-    return demoStore.getJobs().filter((job) => {
-      const query = filters?.query?.toLowerCase();
-      const location = filters?.location?.toLowerCase();
-      const roleType = filters?.roleType?.toLowerCase();
-
-      return (
-        (!query ||
-          job.title.toLowerCase().includes(query) ||
-          job.description.toLowerCase().includes(query) ||
-          job.event.title.toLowerCase().includes(query)) &&
-        (!location || job.event.location.toLowerCase().includes(location)) &&
-        (!roleType || job.roleType.toLowerCase().includes(roleType)) &&
-        (!filters?.minimumPay || job.payRate >= filters.minimumPay) &&
-        (!filters?.date || job.event.eventDate.slice(0, 10) === filters.date)
-      );
-    });
+    return filterJobs(demoStore.getJobs(), filters);
   }
 
   async getJobById(id: string) {
@@ -123,8 +127,7 @@ export class DemoDataProvider implements StaffBookDataProvider {
           entry.profile.fullName.toLowerCase().includes(query) ||
           entry.profile.bio?.toLowerCase().includes(query)) &&
         (!skill || entry.profile.skills.some((item) => item.toLowerCase().includes(skill))) &&
-        (!availability ||
-          entry.profile.availability?.toLowerCase().includes(availability))
+        (!availability || entry.profile.availability?.toLowerCase().includes(availability))
       );
     });
   }
@@ -149,6 +152,46 @@ export class DemoDataProvider implements StaffBookDataProvider {
     return demoStore.getStaffDashboard(session);
   }
 
+  async getStaffJobsBoard() {
+    const session = getDemoSessionFromStorage();
+
+    if (!session || session.role !== "staff") {
+      throw new AppError("You must sign in as staff.", "UNAUTHENTICATED", 401);
+    }
+
+    return demoStore.getStaffJobsBoard(session);
+  }
+
+  async getOperatorWorkspace() {
+    const session = getDemoSessionFromStorage();
+
+    if (!session || session.role !== "staff") {
+      throw new AppError("You must sign in as staff.", "UNAUTHENTICATED", 401);
+    }
+
+    return demoStore.getOperatorWorkspace(session);
+  }
+
+  async getNotifications() {
+    const session = getDemoSessionFromStorage();
+
+    if (!session) {
+      throw new AppError("You must sign in first.", "UNAUTHENTICATED", 401);
+    }
+
+    return demoStore.getNotifications(session);
+  }
+
+  async getJobAlerts() {
+    const session = getDemoSessionFromStorage();
+
+    if (!session || session.role !== "staff") {
+      return [];
+    }
+
+    return demoStore.getJobAlerts(session);
+  }
+
   async createEvent(input: CreateEventInput) {
     const session = getDemoSessionFromStorage();
 
@@ -169,6 +212,16 @@ export class DemoDataProvider implements StaffBookDataProvider {
     demoStore.createJob(session, input);
   }
 
+  async updateJobStatus(jobId: string, status: Extract<JobStatus, "open" | "closed" | "cancelled">) {
+    const session = getDemoSessionFromStorage();
+
+    if (!session) {
+      throw new AppError("You must sign in first.", "UNAUTHENTICATED", 401);
+    }
+
+    demoStore.updateJobStatus(session, jobId, status);
+  }
+
   async applyToJob(input: JobApplicationInput) {
     const session = getDemoSessionFromStorage();
 
@@ -179,7 +232,67 @@ export class DemoDataProvider implements StaffBookDataProvider {
     demoStore.applyToJob(session, input);
   }
 
-  async updateApplicationStatus(applicationId: string, status: ApplicationStatus) {
+  async withdrawApplication(applicationId: string) {
+    const session = getDemoSessionFromStorage();
+
+    if (!session || session.role !== "staff") {
+      throw new AppError("You must sign in as staff.", "UNAUTHENTICATED", 401);
+    }
+
+    demoStore.withdrawApplication(session, applicationId);
+  }
+
+  async saveJob(jobId: string) {
+    const session = getDemoSessionFromStorage();
+
+    if (!session || session.role !== "staff") {
+      throw new AppError("You must sign in as staff.", "UNAUTHENTICATED", 401);
+    }
+
+    demoStore.saveJob(session, jobId);
+  }
+
+  async unsaveJob(jobId: string) {
+    const session = getDemoSessionFromStorage();
+
+    if (!session || session.role !== "staff") {
+      throw new AppError("You must sign in as staff.", "UNAUTHENTICATED", 401);
+    }
+
+    demoStore.unsaveJob(session, jobId);
+  }
+
+  async upsertJobAlert(input: JobAlertInput) {
+    const session = getDemoSessionFromStorage();
+
+    if (!session || session.role !== "staff") {
+      throw new AppError("You must sign in as staff.", "UNAUTHENTICATED", 401);
+    }
+
+    return demoStore.upsertJobAlert(session, input);
+  }
+
+  async deleteJobAlert(alertId: string) {
+    const session = getDemoSessionFromStorage();
+
+    if (!session || session.role !== "staff") {
+      throw new AppError("You must sign in as staff.", "UNAUTHENTICATED", 401);
+    }
+
+    demoStore.deleteJobAlert(session, alertId);
+  }
+
+  async recordJobView(jobId: string) {
+    const session = getDemoSessionFromStorage();
+
+    if (!session || session.role !== "staff") {
+      return;
+    }
+
+    demoStore.recordJobView(session, jobId);
+  }
+
+  async updateApplicationStatus(applicationId: string, status: ApplicationStatus): Promise<{ warning?: string }> {
     const session = getDemoSessionFromStorage();
 
     if (!session) {
@@ -187,19 +300,79 @@ export class DemoDataProvider implements StaffBookDataProvider {
     }
 
     demoStore.updateApplicationStatus(session, applicationId, status);
+    return {};
   }
 
   async markEventCompleted(eventId: string) {
     demoStore.markEventCompleted(eventId);
   }
 
-  async submitRating(input: StaffRatingInput) {
+  async submitOperatorReview(input: OperatorReviewInput) {
     const session = getDemoSessionFromStorage();
 
     if (!session) {
       throw new AppError("You must sign in first.", "UNAUTHENTICATED", 401);
     }
 
-    return demoStore.submitRating(session, input);
+    return demoStore.submitOperatorReview(session, input);
+  }
+
+  async submitClientFeedback(input: ClientFeedbackInput) {
+    const session = getDemoSessionFromStorage();
+
+    if (!session) {
+      throw new AppError("You must sign in first.", "UNAUTHENTICATED", 401);
+    }
+
+    demoStore.submitClientFeedback(session, input);
+  }
+
+  async updateOperatorProfile(input: UpdateOperatorProfileInput) {
+    const session = getDemoSessionFromStorage();
+
+    if (!session) {
+      throw new AppError("You must sign in first.", "UNAUTHENTICATED", 401);
+    }
+
+    demoStore.updateOperatorProfile(session, input);
+  }
+
+  async updateOperatorAvailability(input: UpdateOperatorAvailabilityInput) {
+    const session = getDemoSessionFromStorage();
+
+    if (!session) {
+      throw new AppError("You must sign in first.", "UNAUTHENTICATED", 401);
+    }
+
+    demoStore.updateOperatorAvailability(session, input);
+  }
+
+  async updateEmail(input: UpdateEmailInput) {
+    const session = getDemoSessionFromStorage();
+
+    if (!session) {
+      throw new AppError("You must sign in first.", "UNAUTHENTICATED", 401);
+    }
+
+    demoStore.updateEmail(session, input.email);
+    setDemoSession({ ...session, email: input.email });
+  }
+
+  async updateMarketingPreferences(input: UpdateMarketingPreferencesInput) {
+    const session = getDemoSessionFromStorage();
+
+    if (!session) {
+      throw new AppError("You must sign in first.", "UNAUTHENTICATED", 401);
+    }
+
+    demoStore.updateMarketingPreferences(session, input);
+  }
+
+  async updatePassword(_input: UpdatePasswordInput) {
+    const session = getDemoSessionFromStorage();
+
+    if (!session) {
+      throw new AppError("You must sign in first.", "UNAUTHENTICATED", 401);
+    }
   }
 }

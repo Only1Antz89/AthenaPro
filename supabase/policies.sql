@@ -1,16 +1,28 @@
-alter table public.organizations enable row level security;
-alter table public.profiles enable row level security;
-alter table public.organization_memberships enable row level security;
-alter table public.events enable row level security;
-alter table public.jobs enable row level security;
-alter table public.applications enable row level security;
-alter table public.application_status_history enable row level security;
-alter table public.ratings enable row level security;
+alter table if exists public.organizations enable row level security;
+alter table if exists public.profiles enable row level security;
+alter table if exists public.marketing_preferences enable row level security;
+alter table if exists public.operator_profiles enable row level security;
+alter table if exists public.operator_availability_rules enable row level security;
+alter table if exists public.operator_payment_profiles enable row level security;
+alter table if exists public.organization_memberships enable row level security;
+alter table if exists public.events enable row level security;
+alter table if exists public.jobs enable row level security;
+alter table if exists public.applications enable row level security;
+alter table if exists public.application_status_history enable row level security;
+alter table if exists public.job_view_events enable row level security;
+alter table if exists public.saved_jobs enable row level security;
+alter table if exists public.job_alerts enable row level security;
+alter table if exists public.ratings enable row level security;
+alter table if exists public.client_feedback enable row level security;
+alter table if exists public.notifications enable row level security;
+alter table if exists public.notification_email_jobs enable row level security;
 
 create or replace function public.is_org_member(org_id uuid)
 returns boolean
 language sql
 stable
+security definer
+set search_path = public
 as $$
   select exists (
     select 1
@@ -19,6 +31,10 @@ as $$
       and m.profile_id = auth.uid()
   );
 $$;
+
+revoke execute on function public.is_org_member(uuid) from public;
+revoke execute on function public.is_org_member(uuid) from anon;
+revoke execute on function public.is_org_member(uuid) from authenticated;
 
 drop policy if exists "profiles_select_self_or_public_staff" on public.profiles;
 create policy "profiles_select_self_or_public_staff"
@@ -39,6 +55,84 @@ on public.profiles
 for insert
 with check (id = auth.uid());
 
+do $$
+begin
+  if to_regclass('public.marketing_preferences') is not null then
+    execute 'drop policy if exists "marketing_preferences_select_self" on public.marketing_preferences';
+    execute 'create policy "marketing_preferences_select_self" on public.marketing_preferences for select using (profile_id = auth.uid())';
+    execute 'drop policy if exists "marketing_preferences_insert_self" on public.marketing_preferences';
+    execute 'create policy "marketing_preferences_insert_self" on public.marketing_preferences for insert with check (profile_id = auth.uid())';
+    execute 'drop policy if exists "marketing_preferences_update_self" on public.marketing_preferences';
+    execute 'create policy "marketing_preferences_update_self" on public.marketing_preferences for update using (profile_id = auth.uid()) with check (profile_id = auth.uid())';
+  end if;
+end $$;
+
+do $$
+begin
+  if to_regclass('public.operator_profiles') is not null then
+    execute 'drop policy if exists "operator_profiles_select_self_or_organiser" on public.operator_profiles';
+    execute $policy$
+      create policy "operator_profiles_select_self_or_organiser"
+      on public.operator_profiles
+      for select
+      using (
+        profile_id = auth.uid()
+        or exists (
+          select 1
+          from public.profiles p
+          where p.id = auth.uid() and p.role = 'organiser'
+        )
+      )
+    $policy$;
+    execute 'drop policy if exists "operator_profiles_upsert_self" on public.operator_profiles';
+    execute 'create policy "operator_profiles_upsert_self" on public.operator_profiles for all using (profile_id = auth.uid()) with check (profile_id = auth.uid())';
+  end if;
+end $$;
+
+do $$
+begin
+  if to_regclass('public.operator_availability_rules') is not null then
+    execute 'drop policy if exists "operator_availability_select_self_or_organiser" on public.operator_availability_rules';
+    execute $policy$
+      create policy "operator_availability_select_self_or_organiser"
+      on public.operator_availability_rules
+      for select
+      using (
+        operator_id = auth.uid()
+        or exists (
+          select 1
+          from public.profiles p
+          where p.id = auth.uid() and p.role = 'organiser'
+        )
+      )
+    $policy$;
+    execute 'drop policy if exists "operator_availability_manage_self" on public.operator_availability_rules';
+    execute 'create policy "operator_availability_manage_self" on public.operator_availability_rules for all using (operator_id = auth.uid()) with check (operator_id = auth.uid())';
+  end if;
+end $$;
+
+do $$
+begin
+  if to_regclass('public.operator_payment_profiles') is not null then
+    execute 'drop policy if exists "operator_payment_select_self" on public.operator_payment_profiles';
+    execute $policy$
+      create policy "operator_payment_select_self"
+      on public.operator_payment_profiles
+      for select
+      using (
+        operator_id = auth.uid()
+        or exists (
+          select 1
+          from public.profiles p
+          where p.id = auth.uid() and p.role = 'organiser'
+        )
+      )
+    $policy$;
+    execute 'drop policy if exists "operator_payment_manage_self" on public.operator_payment_profiles';
+    execute 'create policy "operator_payment_manage_self" on public.operator_payment_profiles for all using (operator_id = auth.uid()) with check (operator_id = auth.uid())';
+  end if;
+end $$;
+
 drop policy if exists "organizations_select_members" on public.organizations;
 create policy "organizations_select_members"
 on public.organizations
@@ -49,7 +143,7 @@ drop policy if exists "organizations_insert_owner" on public.organizations;
 create policy "organizations_insert_owner"
 on public.organizations
 for insert
-with check (true);
+with check (auth.uid() is not null);
 
 drop policy if exists "memberships_select_self_or_org_members" on public.organization_memberships;
 create policy "memberships_select_self_or_org_members"
@@ -140,11 +234,77 @@ using (
   )
 );
 
-drop policy if exists "ratings_public_read" on public.ratings;
-create policy "ratings_public_read"
+do $$
+begin
+  if to_regclass('public.job_view_events') is not null then
+    execute 'drop policy if exists "job_view_events_read_self" on public.job_view_events';
+    execute 'create policy "job_view_events_read_self" on public.job_view_events for select using (viewer_id = auth.uid())';
+    execute 'drop policy if exists "job_view_events_insert_self" on public.job_view_events';
+    execute $policy$
+      create policy "job_view_events_insert_self"
+      on public.job_view_events
+      for insert
+      with check (
+        viewer_id = auth.uid()
+        and exists (
+          select 1
+          from public.profiles p
+          where p.id = auth.uid() and p.role = 'staff'
+        )
+        and exists (
+          select 1
+          from public.jobs j
+          where j.id = job_id and j.status = 'open'
+        )
+      )
+    $policy$;
+  end if;
+end $$;
+
+do $$
+begin
+  if to_regclass('public.saved_jobs') is not null then
+    execute 'drop policy if exists "saved_jobs_manage_self" on public.saved_jobs';
+    execute $policy$
+      create policy "saved_jobs_manage_self"
+      on public.saved_jobs
+      for all
+      using (staff_id = auth.uid())
+      with check (
+        staff_id = auth.uid()
+        and exists (
+          select 1
+          from public.profiles p
+          where p.id = auth.uid() and p.role = 'staff'
+        )
+      )
+    $policy$;
+  end if;
+
+  if to_regclass('public.job_alerts') is not null then
+    execute 'drop policy if exists "job_alerts_manage_self" on public.job_alerts';
+    execute $policy$
+      create policy "job_alerts_manage_self"
+      on public.job_alerts
+      for all
+      using (staff_id = auth.uid())
+      with check (
+        staff_id = auth.uid()
+        and exists (
+          select 1
+          from public.profiles p
+          where p.id = auth.uid() and p.role = 'staff'
+        )
+      )
+    $policy$;
+  end if;
+end $$;
+
+drop policy if exists "ratings_read_authenticated" on public.ratings;
+create policy "ratings_read_authenticated"
 on public.ratings
 for select
-using (true);
+using (auth.uid() is not null);
 
 drop policy if exists "ratings_insert_authorised_organisers" on public.ratings;
 create policy "ratings_insert_authorised_organisers"
@@ -159,9 +319,56 @@ with check (
     join public.jobs j on j.id = a.job_id
     join public.events e on e.id = j.event_id
     where a.staff_id = ratings.staff_id
+      and a.job_id = ratings.job_id
       and a.status = 'accepted'
       and e.id = ratings.event_id
       and e.status = 'completed'
       and j.organization_id = ratings.organization_id
   )
 );
+
+do $$
+begin
+  if to_regclass('public.client_feedback') is not null then
+    execute 'drop policy if exists "client_feedback_read_self_or_org" on public.client_feedback';
+    execute 'create policy "client_feedback_read_self_or_org" on public.client_feedback for select using (staff_id = auth.uid() or public.is_org_member(organization_id))';
+    execute 'drop policy if exists "client_feedback_insert_self" on public.client_feedback';
+    execute $policy$
+      create policy "client_feedback_insert_self"
+      on public.client_feedback
+      for insert
+      with check (
+        staff_id = auth.uid()
+        and exists (
+          select 1
+          from public.applications a
+          join public.jobs j on j.id = a.job_id
+          join public.events e on e.id = j.event_id
+          where a.id = client_feedback.assignment_id
+            and a.staff_id = auth.uid()
+            and a.status = 'accepted'
+            and e.status = 'completed'
+            and j.organization_id = client_feedback.organization_id
+        )
+      )
+    $policy$;
+  end if;
+end $$;
+
+do $$
+begin
+  if to_regclass('public.notifications') is not null then
+    execute 'drop policy if exists "notifications_read_self" on public.notifications';
+    execute 'create policy "notifications_read_self" on public.notifications for select using (user_id = auth.uid())';
+    execute 'drop policy if exists "notifications_update_self" on public.notifications';
+    execute 'create policy "notifications_update_self" on public.notifications for update using (user_id = auth.uid()) with check (user_id = auth.uid())';
+  end if;
+end $$;
+
+do $$
+begin
+  if to_regclass('public.notification_email_jobs') is not null then
+    execute 'drop policy if exists "notification_email_jobs_read_self" on public.notification_email_jobs';
+    execute 'create policy "notification_email_jobs_read_self" on public.notification_email_jobs for select using (user_id = auth.uid())';
+  end if;
+end $$;

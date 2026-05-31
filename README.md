@@ -1,21 +1,21 @@
-# StaffBook Demo
+# Athena Pro Platform
 
-StaffBook Demo is a production-minded demo platform for event organisers and staff recruitment. It is built with `Next.js 14`, `TypeScript`, `Tailwind CSS`, and `Supabase`, with a fallback demo runtime that keeps the app fully interactive when Supabase is not configured.
+Athena Pro is a production-minded event operations platform for ticketing support, field team deployment, and commercial event oversight. It is built with `Next.js 14`, `TypeScript`, `Tailwind CSS`, and `Supabase`, with a fallback demo runtime that keeps the app interactive when Supabase is not configured.
 
-## What’s Included
+## What's Included
 
-- Landing page, auth pages, organiser dashboard, staff dashboard
-- Event creation, job posting, application, and rating flows
-- Bayesian-weighted staff ranking
+- Premium public site for Athena Pro marketing, services, about, and enquiry flow
+- Platform access, client workspace, and field-team workspace
+- Event creation, assignment publishing, deployment request, and review flows
+- Bayesian-weighted field-team ranking
 - Supabase SQL for schema, RLS policies, views, and seed data
-- Public API routes for highlights, jobs, job detail, and ranked staff
 - Demo-mode local auth and browser-persisted seed data
 
 ## Tech Approach
 
 - `app/`: App Router routes and API handlers
-- `components/`: reusable UI and layout building blocks
-- `features/`: route-facing client modules and workflow orchestration
+- `components/`: shared UI and layout building blocks
+- `features/`: route-facing modules and workflow orchestration
 - `lib/domain/`: ranking and transition logic
 - `lib/data/`: live and demo providers plus store utilities
 - `lib/services/`: server-safe public data services
@@ -29,8 +29,8 @@ StaffBook Demo is a production-minded demo platform for event organisers and sta
 Demo mode is automatic when `NEXT_PUBLIC_SUPABASE_URL` or `NEXT_PUBLIC_SUPABASE_ANON_KEY` is missing.
 
 - Signup and login work locally in the browser
-- New organiser accounts receive a starter organisation workspace
-- New staff accounts receive seeded applications and ratings
+- New client accounts receive a starter organisation workspace
+- New field-team accounts receive seeded applications and reviews
 - Data persists in browser `localStorage`
 
 ### Live mode
@@ -49,6 +49,18 @@ Create `.env.local`:
 NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SMTP2GO_SMTP_HOST=mail.smtp2go.com
+SMTP2GO_SMTP_PORT=587
+SMTP2GO_SMTP_USER=your-smtp2go-user
+SMTP2GO_SMTP_PASSWORD=your-smtp2go-password
+SMTP2GO_FROM_EMAIL=ops@your-domain.com
+SMTP2GO_FROM_NAME=Athena Pro
+SMTP2GO_WEBHOOK_AUTH=Bearer your-smtp2go-webhook-secret
+ATHENA_REGISTERED_OFFICE=Your registered office postal address
+ATHENA_COMPANY_REGISTRATION=Your company registration number
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GOOGLE_REDIRECT_URI=https://your-domain.com/api/admin/google/oauth/callback
 ```
 
 `SUPABASE_SERVICE_ROLE_KEY` is only for server-side/public service usage and setup tasks. Do not expose it in client code.
@@ -77,32 +89,11 @@ Run the SQL in this order:
 
 1. `supabase/schema.sql`
 2. `supabase/policies.sql`
-3. `supabase/seed.sql`
-
-Recommended notes:
-
-- Disable mandatory email confirmation for local/demo setup if you want smoother live signup testing.
-- Ensure the authenticated role can access tables through the provided RLS policies.
-- Generate typed database definitions later if you want to remove the loose live-adapter typing.
-
-## Netlify Deployment
-
-1. Create a new Netlify site from this repo.
-2. Set the three environment variables above in Netlify.
-3. Build command: `npm run build`
-4. Publish directory: `.next`
-
-If you deploy without Supabase env vars, the app still renders and runs in demo mode.
+3. `supabase/athena-admin-schema.sql`
+4. `supabase/seed.sql`
 
 ## Production Notes
 
-- The app is structured around provider and service boundaries so a future mobile app can reuse API patterns without a full rewrite.
-- `organizations` and `organization_memberships` are modeled now so multi-user organiser teams can be added later.
-- `application_status_history` and RLS policies provide the start of an auditable workflow.
-- The live Supabase adapter is intentionally schema-aligned but not generated from DB types yet; add generated Supabase types as the next hardening step.
-
-## Assumptions
-
-- Web is the first production client, but mobile reuse is expected later.
-- Team invites, notifications, payments, and messaging are deferred.
-- Dark mode is intentionally omitted to keep focus on the primary demo and foundation quality.
+- The app keeps provider and service boundaries so the demo/runtime split remains intact.
+- Persisted role enums remain `organiser` and `staff` internally for compatibility, while the UI is presented as client and field team.
+- The current contact form is validated UI only and does not yet route enquiries to an external destination.

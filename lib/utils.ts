@@ -26,6 +26,26 @@ export function formatDateTime(date: string) {
   }).format(new Date(date));
 }
 
+export function formatRelativeTime(date: string, now = new Date()) {
+  const target = new Date(date);
+  const diffMs = target.getTime() - now.getTime();
+  const diffMinutes = Math.round(diffMs / (1000 * 60));
+  const formatter = new Intl.RelativeTimeFormat("en-GB", { numeric: "auto" });
+
+  if (Math.abs(diffMinutes) < 60) {
+    return formatter.format(diffMinutes, "minute");
+  }
+
+  const diffHours = Math.round(diffMinutes / 60);
+
+  if (Math.abs(diffHours) < 24) {
+    return formatter.format(diffHours, "hour");
+  }
+
+  const diffDays = Math.round(diffHours / 24);
+  return formatter.format(diffDays, "day");
+}
+
 export function slugify(value: string) {
   return value
     .toLowerCase()

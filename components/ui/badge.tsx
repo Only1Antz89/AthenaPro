@@ -1,11 +1,11 @@
 import { cn } from "@/lib/utils";
 
 const variants = {
-  neutral: "bg-slate-100 text-slate-700",
-  success: "bg-emerald-50 text-emerald-700",
-  warning: "bg-amber-50 text-amber-700",
-  danger: "bg-rose-50 text-rose-700",
-  accent: "bg-accentSoft text-accent"
+  neutral: "text-slate",
+  success: "text-success",
+  warning: "text-gold",
+  danger: "text-rose",
+  accent: "text-mist"
 };
 
 export function Badge({
@@ -16,7 +16,12 @@ export function Badge({
   variant?: keyof typeof variants;
 }) {
   return (
-    <span className={cn("inline-flex rounded-full px-3 py-1 text-xs font-semibold", variants[variant])}>
+    <span
+      className={cn(
+        "inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] before:block before:h-1.5 before:w-1.5 before:rounded-full before:bg-current before:content-['']",
+        variants[variant]
+      )}
+    >
       {children}
     </span>
   );

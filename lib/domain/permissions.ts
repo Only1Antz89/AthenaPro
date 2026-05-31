@@ -6,6 +6,10 @@ export function canRateStaff(event: Event, applicationStatus: ApplicationStatus)
   return event.status === "completed" && applicationStatus === "accepted";
 }
 
+export function canSubmitClientFeedback(event: Event, applicationStatus: ApplicationStatus) {
+  return canRateStaff(event, applicationStatus);
+}
+
 export function canTransitionApplication(
   current: ApplicationStatus,
   next: ApplicationStatus

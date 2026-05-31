@@ -11,6 +11,7 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Stars } from "@/components/ui/stars";
+import { ENTITY_LABELS } from "@/lib/brand";
 import type { RankedStaffRow } from "@/types/domain";
 
 export function StaffDirectory({ initialStaff }: { initialStaff: RankedStaffRow[] }) {
@@ -43,29 +44,34 @@ export function StaffDirectory({ initialStaff }: { initialStaff: RankedStaffRow[
   return (
     <main>
       <SiteHeader />
-      <section className="py-12">
+      <section className="py-10 sm:py-12 md:py-16">
         <PageContainer>
-          <div className="max-w-3xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-accent">Ranked staff</p>
-            <h1 className="mt-4 font-display text-5xl font-semibold text-ink">Weighted rankings that reward consistency, not lucky one-offs</h1>
-            <p className="mt-4 text-lg text-slate">
-              Review count and quality combine into a ranking score that keeps the directory credible for organisers.
+          <div className="section-frame max-w-3xl pl-4 sm:pl-6">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate">
+              {ENTITY_LABELS.staffDirectory}
+            </p>
+            <h1 className="text-balance mt-4 font-display text-4xl font-semibold tracking-[-0.05em] text-ink sm:text-5xl">
+              Vetted field operators ranked by delivery quality, not guesswork.
+            </h1>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-slate sm:text-lg sm:leading-8">
+              Reviews, consistency, and profile detail combine into a more useful deployment shortlist for
+              live event operators.
             </p>
           </div>
 
-          <Card className="mt-8">
-            <div className="grid gap-4 md:grid-cols-3">
+          <Card className="mt-10">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <Field label="Search">
-                <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Name or skill" />
+                <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Name or discipline" />
               </Field>
               <Field label="Availability">
-                <Input value={availability} onChange={(event) => setAvailability(event.target.value)} placeholder="Weekends, flexible" />
+                <Input value={availability} onChange={(event) => setAvailability(event.target.value)} placeholder="Immediate, weekends" />
               </Field>
-              <Field label="Sort by">
+              <Field label="Order">
                 <Select value={sort} onChange={(event) => setSort(event.target.value)}>
-                  <option value="ranking">Weighted ranking</option>
+                  <option value="ranking">Recommended order</option>
                   <option value="rating">Average rating</option>
-                  <option value="reviews">Review count</option>
+                  <option value="reviews">Review volume</option>
                 </Select>
               </Field>
             </div>
@@ -75,13 +81,13 @@ export function StaffDirectory({ initialStaff }: { initialStaff: RankedStaffRow[
             {ranked.map((entry) => (
               <Card key={entry.staffId} className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex items-start gap-4">
-                  <div className="rounded-full bg-accentSoft px-3 py-2 text-sm font-semibold text-accent">
+                  <div className="rounded-full bg-accentSoft px-3 py-2 text-sm font-semibold text-mist">
                     #{entry.rank}
                   </div>
                   <Avatar name={entry.profile.fullName} size="lg" />
                   <div>
                     <div className="flex flex-wrap items-center gap-3">
-                      <h2 className="text-xl font-semibold text-ink">{entry.profile.fullName}</h2>
+                      <h2 className="text-lg font-semibold text-ink sm:text-xl">{entry.profile.fullName}</h2>
                       {entry.topBadge ? <Badge variant="accent">{entry.topBadge}</Badge> : null}
                     </div>
                     <p className="mt-2 text-sm text-slate">{entry.profile.bio}</p>
@@ -91,9 +97,9 @@ export function StaffDirectory({ initialStaff }: { initialStaff: RankedStaffRow[
                 </div>
                 <div className="space-y-2 lg:text-right">
                   <Stars value={entry.averageRating || 4.2} size="md" />
-                  <p className="text-sm text-slate">{entry.reviewCount} reviews</p>
+                  <p className="text-sm text-slate">{entry.reviewCount} delivery reviews</p>
                   <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate">
-                    Weighted score {entry.weightedScore.toFixed(2)}
+                    Standing score {entry.weightedScore.toFixed(2)}
                   </p>
                 </div>
               </Card>

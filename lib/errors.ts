@@ -1,3 +1,5 @@
+import { ZodError } from "zod";
+
 export class AppError extends Error {
   constructor(
     message: string,
@@ -8,8 +10,31 @@ export class AppError extends Error {
   }
 }
 
+function formatFieldLabel(path: (string | number)[]) {
+  if (path.length === 0) {
+    return "This field";
+  }
+
+  const label = String(path[path.length - 1])
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .trim();
+
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
 export function toDisplayError(error: unknown) {
   if (error instanceof AppError) {
+    return error.message;
+  }
+
+  if (error instanceof ZodError) {
+    return error.issues
+      .map((issue) => `${formatFieldLabel(issue.path)}: ${issue.message}`)
+      .join("\n");
+  }
+
+  if (error instanceof Error && error.message.trim().length > 0) {
     return error.message;
   }
 

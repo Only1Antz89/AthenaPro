@@ -12,6 +12,8 @@ const baseEvent: Event = {
   eventDate: new Date().toISOString(),
   eventType: "Corporate",
   requiredRoles: [],
+  serviceTier: "mixed",
+  serviceTierSource: "manual",
   status: "published",
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString()

@@ -17,7 +17,7 @@ export function Stars({
             key={index}
             className={cn(
               "fill-current",
-              active ? "text-gold" : "text-slate-200",
+              active ? "text-gold" : "text-white/10",
               size === "md" ? "h-5 w-5" : "h-4 w-4"
             )}
           />

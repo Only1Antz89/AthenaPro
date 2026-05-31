@@ -22,10 +22,7 @@ export function StarInput({
             onClick={() => onChange(score)}
           >
             <Star
-              className={cn(
-                "h-6 w-6",
-                score <= value ? "fill-gold text-gold" : "text-slate-300"
-              )}
+              className={cn("h-6 w-6", score <= value ? "fill-gold text-gold" : "text-white/16")}
             />
           </button>
         );
