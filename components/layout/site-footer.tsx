@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { PageContainer } from "@/components/layout/page-container";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { BRAND, NAV_LABELS } from "@/lib/brand";
 import { SITE_CONTACT } from "@/lib/site-content";
 
@@ -30,16 +29,12 @@ export function SiteFooter() {
             <Link href="/jobs" className="transition hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">{NAV_LABELS.jobs}</Link>
             <Link href="/staff" className="transition hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">{NAV_LABELS.staff}</Link>
             <Link href="/auth/login" className="transition hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">{NAV_LABELS.login}</Link>
-            <Link href="/auth/signup" className="transition hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">{NAV_LABELS.signup}</Link>
           </div>
           <p className="pt-2 font-semibold text-ink">Legal</p>
           <div className="flex flex-col gap-2">
             <Link href="/privacy" className="transition hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">Privacy Policy</Link>
             <Link href="/terms" className="transition hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">Terms and Conditions</Link>
           </div>
-        </div>
-        <div className="border-t border-line/50 pt-5 md:col-span-3">
-          <ThemeToggle compact className="h-10 w-10 border-line/70 bg-surfaceRaised/80 shadow-sm" />
         </div>
       </PageContainer>
     </footer>

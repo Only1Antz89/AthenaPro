@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter, Montserrat } from "next/font/google";
-import Script from "next/script";
 import { Toaster } from "sonner";
 import "@/app/globals.css";
 import { DeployRefresh } from "@/components/layout/deploy-refresh";
@@ -64,15 +63,6 @@ export const metadata: Metadata = {
   }
 };
 
-const themeScript = `
-  try {
-    var theme = window.localStorage.getItem("josjobs-theme");
-    if (theme === "light" || theme === "dark") {
-      document.documentElement.dataset.theme = theme;
-    }
-  } catch (error) {}
-`;
-
 export default function RootLayout({
   children
 }: Readonly<{
@@ -81,9 +71,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${montserrat.variable} font-sans text-ink antialiased`}>
-        <Script id="theme-init" strategy="beforeInteractive">
-          {themeScript}
-        </Script>
         <DeployRefresh />
         {children}
         <Toaster position="top-right" richColors />

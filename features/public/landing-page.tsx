@@ -11,11 +11,11 @@ import type { LandingHighlights } from "@/types/domain";
 
 const HOME_IMAGES = {
   hero:
-    "https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1600&q=80",
+    "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1800&q=85",
   support:
-    "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1400&q=80",
+    "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=1400&q=85",
   detail:
-    "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1400&q=80"
+    "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=1600&q=85"
 } as const;
 
 export function LandingPage({ data }: { data: LandingHighlights }) {
@@ -47,14 +47,14 @@ export function LandingPage({ data }: { data: LandingHighlights }) {
                 Get matched to paid event roles that fit your skills, availability, and reputation.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:flex-wrap sm:gap-4">
-                <Link href="/auth/signup?type=field-team">
+                <Link href="/auth/login">
                   <Button className="w-full gap-2 bg-lime-300 text-black hover:bg-lime-200 sm:w-auto">
-                    Field-team sign up <ArrowRight className="h-4 w-4" />
+                    Platform access <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
-                <Link href="/auth/signup?type=company">
+                <Link href="/jobs">
                   <Button variant="secondary" className="w-full border-white/20 bg-white/[0.08] text-white hover:bg-white/[0.14] sm:w-auto">
-                    Company sign up
+                    Find roles
                   </Button>
                 </Link>
               </div>
@@ -64,7 +64,7 @@ export function LandingPage({ data }: { data: LandingHighlights }) {
               <div className="relative h-[300px] w-full overflow-hidden rounded-[30px] border border-line/60 bg-black/30 shadow-float sm:h-[360px] sm:rounded-[36px] lg:h-[420px] lg:max-w-[470px]">
                 <img
                   src={HOME_IMAGES.support}
-                  alt="Black event operations professionals in discussion."
+                  alt="Festival crowd with stage lights."
                   className="h-full w-full object-cover"
                 />
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,18,19,0.04),rgba(17,18,19,0.72))]" />
@@ -113,14 +113,14 @@ export function LandingPage({ data }: { data: LandingHighlights }) {
           </div>
           <div className="grid gap-8">
             <p className="scroll-reveal-right max-w-3xl text-base leading-8 text-slate sm:text-lg sm:leading-9">
-              Athena Pro is built for organisers who want fewer handoffs, clearer signals, and a steadier event
-              floor. We keep the visual language restrained because the operating reality is already complex
-              enough.
+                Athena Pro is built for organisers and field-team members who want fewer handoffs, clearer
+                signals, and a steadier event floor. The experience stays fast and social without losing the
+                operational tools behind the profile button.
             </p>
             <div className="scroll-reveal-scale relative overflow-hidden rounded-[36px] border border-line/60">
               <img
                 src={HOME_IMAGES.detail}
-                alt="Black professionals reviewing event delivery plans."
+                alt="Open air festival stage and crowd."
                 className="h-[280px] w-full object-cover sm:h-[360px] md:h-[420px]"
               />
               <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(17,18,19,0.15),rgba(17,18,19,0.75))]" />
