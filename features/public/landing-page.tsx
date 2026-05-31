@@ -4,7 +4,7 @@ import { PageContainer } from "@/components/layout/page-container";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { Button } from "@/components/ui/button";
-import { BRAND, ENTITY_LABELS, PUBLIC_COPY } from "@/lib/brand";
+import { ENTITY_LABELS } from "@/lib/brand";
 import { HOME_METRICS, SERVICE_PILLARS } from "@/lib/site-content";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type { LandingHighlights } from "@/types/domain";
@@ -20,44 +20,41 @@ const HOME_IMAGES = {
 
 export function LandingPage({ data }: { data: LandingHighlights }) {
   return (
-    <main className="overflow-x-hidden">
+    <main className="theme-dark overflow-x-hidden bg-black">
       <SiteHeader />
 
-      <section className="theme-dark relative isolate min-h-[calc(100svh-80px)] overflow-hidden bg-hero-grid">
+      <section className="relative isolate min-h-[calc(100svh-80px)] overflow-hidden bg-black">
         <div className="absolute inset-0">
           <img
             src={HOME_IMAGES.hero}
             alt="Athena Pro team coordinating live event operations."
-            className="h-full w-full object-cover opacity-30"
+            className="h-full w-full object-cover opacity-55"
           />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(13,15,17,0.96)_0%,rgba(13,15,17,0.78)_44%,rgba(13,15,17,0.45)_100%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_18%,rgba(112,128,144,0.26),transparent_0_24%),linear-gradient(180deg,rgba(17,18,19,0.28),rgba(17,18,19,0.88))]" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.96)_0%,rgba(0,0,0,0.72)_46%,rgba(0,0,0,0.36)_100%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(190,242,100,0.18),transparent_0_26%),radial-gradient(circle_at_80%_20%,rgba(236,72,153,0.22),transparent_0_24%)]" />
         </div>
 
         <PageContainer className="relative z-10 flex min-h-[calc(100svh-72px)] flex-col justify-between py-8 sm:min-h-[calc(100svh-80px)] sm:py-10 md:py-14">
-          <div className="grid gap-12 lg:grid-cols-[minmax(0,0.88fr)_minmax(320px,0.72fr)] lg:items-end">
+          <div className="grid gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(320px,0.72fr)] lg:items-end">
             <div className="max-w-4xl animate-fade-up">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate">
-                {PUBLIC_COPY.heroEyebrow}
+              <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-lime-300">
+                Live events. Real people.
               </p>
-              <p className="mt-6 font-display text-4xl font-semibold tracking-[0.18em] text-mist sm:mt-8 sm:text-5xl md:text-7xl">
-                {BRAND.name}
-              </p>
-              <h1 className="text-balance mt-5 max-w-3xl font-display text-4xl font-semibold leading-[0.94] tracking-[-0.08em] text-ink sm:text-5xl md:text-7xl">
-                Calm command for live event systems and field execution.
+              <h1 className="text-balance mt-6 max-w-3xl font-display text-5xl font-semibold leading-[0.95] tracking-[-0.06em] text-white sm:text-6xl md:text-7xl">
+                Your next role <span className="text-lime-300">starts here.</span>
               </h1>
               <p className="mt-5 max-w-xl text-sm leading-7 text-slate sm:text-base sm:leading-8 md:text-lg">
-                {PUBLIC_COPY.heroSubheadline}
+                Get matched to paid event roles that fit your skills, availability, and reputation.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:flex-wrap sm:gap-4">
-                <Link href="/contact">
-                  <Button className="w-full gap-2 sm:w-auto">
-                    {PUBLIC_COPY.heroPrimaryCta} <ArrowRight className="h-4 w-4" />
+                <Link href="/auth/signup?type=field-team">
+                  <Button className="w-full gap-2 bg-lime-300 text-black hover:bg-lime-200 sm:w-auto">
+                    Field-team sign up <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
-                <Link href="/auth/login">
-                  <Button variant="secondary" className="w-full sm:w-auto">
-                    {PUBLIC_COPY.heroSecondaryCta}
+                <Link href="/auth/signup?type=company">
+                  <Button variant="secondary" className="w-full border-white/20 bg-white/[0.08] text-white hover:bg-white/[0.14] sm:w-auto">
+                    Company sign up
                   </Button>
                 </Link>
               </div>
@@ -72,18 +69,17 @@ export function LandingPage({ data }: { data: LandingHighlights }) {
                 />
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,18,19,0.04),rgba(17,18,19,0.72))]" />
                 <div className="absolute inset-x-0 bottom-0 p-6">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-mist">
-                    Operating tempo
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-lime-300">
+                    Social job feed
                   </p>
                   <p className="mt-3 max-w-xs font-display text-3xl font-semibold tracking-[-0.05em] text-ink">
-                    Decisions stay elegant even when ingress does not.
+                    Swipe, save, apply, and message companies from one feed.
                   </p>
                 </div>
               </div>
               <div className="flex w-full max-w-[470px] justify-start lg:justify-end">
                 <div className="scroll-reveal-right max-w-[320px] border-t border-line/60 pt-4 text-sm leading-7 text-slate">
-                  Athena Pro aligns gate logic, supervisor judgement, and commercial visibility in one quiet
-                  operating layer.
+                  Ratings, applications, earnings estimates, availability, and messages now sit behind the profile button.
                 </div>
               </div>
             </div>

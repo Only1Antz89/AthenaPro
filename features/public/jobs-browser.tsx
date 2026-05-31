@@ -102,19 +102,19 @@ export function JobsBrowser({ initialJobs }: { initialJobs: EnrichedJob[] }) {
   }, [board.data?.items, jobs]);
 
   return (
-    <main>
+    <main className="theme-dark min-h-screen bg-black">
       <SiteHeader />
       <section className="py-10 sm:py-12 md:py-16">
         <PageContainer>
-          <div className="section-frame max-w-3xl pl-4 sm:pl-6">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate">
+          <div className={cn("section-frame max-w-3xl pl-4 sm:pl-6", isStaff && board.data ? "hidden md:block" : "")}>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-lime-300">
               {ENTITY_LABELS.liveJobs}
             </p>
             <h1 className="text-balance mt-4 font-display text-4xl font-semibold tracking-[-0.05em] text-ink sm:text-5xl">
-              Find available work.
+              Find roles that fit your energy.
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-slate sm:text-lg sm:leading-8">
-              Browse jobs by location, discipline, and rate.
+              Browse paid live-event roles by location, discipline, and rate.
             </p>
           </div>
 
@@ -231,7 +231,7 @@ export function JobsBrowser({ initialJobs }: { initialJobs: EnrichedJob[] }) {
                 const boardItem = boardByJobId.get(job.id);
 
                 return (
-                  <Card key={job.id} className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
+                  <Card key={job.id} className="grid gap-6 rounded-[28px] border-white/10 bg-white/[0.04] lg:grid-cols-[1fr_auto] lg:items-center">
                     <div>
                       <div className="flex flex-wrap items-center gap-3">
                         <h2 className="text-xl font-semibold text-ink sm:text-2xl">{job.title}</h2>

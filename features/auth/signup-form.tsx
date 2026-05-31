@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Building2, ShieldCheck, Ticket, UserRound, Zap } from "lucide-react";
 import { SiteHeader } from "@/components/layout/site-header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -180,51 +181,91 @@ export function SignupForm() {
   }
 
   return (
-    <main>
+    <main className={role === "staff" ? "theme-dark min-h-screen bg-black" : ""}>
       <SiteHeader />
       <section
         className={
           role === "staff"
-            ? "min-h-[calc(100svh-72px)] bg-[linear-gradient(160deg,rgba(163,230,53,0.12),transparent_28%),linear-gradient(20deg,rgba(34,211,238,0.12),transparent_34%)] px-4 py-8 sm:min-h-[calc(100svh-80px)] sm:px-6 sm:py-12"
+            ? "min-h-[calc(100svh-72px)] bg-[radial-gradient(circle_at_15%_12%,rgba(190,242,100,0.18),transparent_0_22%),linear-gradient(180deg,#050607,#0b1017)] px-4 py-8 sm:min-h-[calc(100svh-80px)] sm:px-6 sm:py-10"
             : "flex min-h-[calc(100svh-72px)] items-center justify-center px-4 py-8 sm:min-h-[calc(100svh-80px)] sm:px-6 sm:py-12"
         }
       >
-        <Card className={role === "staff" ? "mx-auto w-full max-w-6xl overflow-hidden rounded-lg border-lime-300/20" : "w-full max-w-5xl"}>
-          <div className={role === "staff" ? "mb-6 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]" : ""}>
+        <Card className={role === "staff" ? "mx-auto w-full max-w-7xl overflow-hidden rounded-none border-white/12 bg-[#071018]/95 p-0 shadow-[0_34px_120px_rgba(0,0,0,0.55)] lg:grid lg:grid-cols-[1.05fr_1fr]" : "w-full max-w-5xl"}>
             {role === "staff" ? (
-              <div className="rounded-lg bg-[linear-gradient(180deg,rgba(8,10,12,0.1),rgba(8,10,12,0.65)),url('https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1200&q=80')] bg-cover bg-center p-6">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-lime-200">Field-team access</p>
-                <h1 className="mt-4 font-display text-4xl font-semibold text-white sm:text-5xl">
-                  Build your festival work feed.
-                </h1>
-                <p className="mt-4 text-sm leading-7 text-white/80">
-                  Create a profile for live-event jobs, role applications, company messages, ratings, and earnings visibility.
-                </p>
+              <div className="relative hidden min-h-[760px] overflow-hidden border-r border-white/12 lg:block">
+                <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.78),rgba(0,0,0,0.24)),url('https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1500&q=80')] bg-cover bg-center" />
+                <div className="relative z-10 flex h-full flex-col justify-between p-12">
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-lime-300">Live events. Real people.</p>
+                    <h1 className="mt-6 max-w-md text-6xl font-semibold leading-[0.95] text-white">
+                      Your next role <span className="text-lime-300">starts here.</span>
+                    </h1>
+                    <p className="mt-6 max-w-md text-lg leading-8 text-white/72">
+                      Join ATHENA PRO and get matched to paid event roles that fit your skills and availability.
+                    </p>
+                    <div className="mt-10 space-y-7">
+                      {[
+                        { Icon: Ticket, title: "Paid roles at top events", detail: "Festivals, stadiums, and more." },
+                        { Icon: UserRound, title: "Build your reputation", detail: "Get rated. Get recommended." },
+                        { Icon: Zap, title: "Fast and flexible", detail: "Work when it works for you." }
+                      ].map(({ Icon, title, detail }) => (
+                        <div key={title} className="flex gap-5">
+                          <Icon className="mt-1 h-9 w-9 text-lime-300" />
+                          <div>
+                            <p className="font-semibold text-white">{title}</p>
+                            <p className="mt-1 text-sm text-white/62">{detail}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-0 overflow-hidden rounded-lg border border-white/12">
+                    <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=700&q=80" alt="Festival scanner wristband" className="h-40 w-full object-cover" />
+                    <img src="https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=700&q=80" alt="Live stage at night" className="h-40 w-full object-cover" />
+                    <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=700&q=80" alt="Supervisor at a live event" className="h-40 w-full object-cover" />
+                  </div>
+                  <div className="mt-8 flex items-center gap-4 border-t border-white/12 pt-8">
+                    <ShieldCheck className="h-10 w-10 text-lime-300" />
+                    <p className="max-w-[12rem] text-sm text-white/62">Trusted by leading event organisers across the UK.</p>
+                    <p className="ml-auto text-sm font-semibold uppercase tracking-[0.14em] text-white/45">Creamfields</p>
+                    <p className="text-sm font-semibold uppercase tracking-[0.14em] text-white/45">BST</p>
+                  </div>
+                </div>
               </div>
             ) : null}
-            <div>
-          <h1 className="text-balance font-display text-3xl font-semibold tracking-[-0.05em] text-ink sm:text-4xl">
-            {role === "organiser" ? `Company access to ${BRAND.name}` : "Create field-team profile"}
+            <div className={role === "staff" ? "p-6 sm:p-8 lg:p-12" : ""}>
+          {role === "staff" ? (
+            <div className="mb-7 overflow-hidden rounded-lg border border-white/12 lg:hidden">
+              <div className="min-h-[250px] bg-[linear-gradient(180deg,rgba(0,0,0,0.1),rgba(0,0,0,0.72)),url('https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1100&q=80')] bg-cover bg-center p-6">
+                <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-lime-300">Live events. Real people.</p>
+                <h2 className="mt-20 max-w-xs text-4xl font-semibold leading-tight text-white">
+                  Your next role <span className="text-lime-300">starts here.</span>
+                </h2>
+              </div>
+            </div>
+          ) : null}
+          <h1 className="text-balance font-display text-3xl font-semibold tracking-[-0.03em] text-ink sm:text-4xl">
+            {role === "organiser" ? `Company access to ${BRAND.name}` : "Field-team sign up"}
           </h1>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-slate">
             {role === "organiser"
               ? "Company accounts post jobs, manage applications, message field team, and track event delivery."
-              : "Field-team accounts browse live jobs, apply for roles, save companies, and manage profile standing."}
+              : <>Create your profile to <span className="text-lime-300">apply for roles</span> and start working events.</>}
           </p>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <Link href="/auth/signup?type=company">
-              <Button type="button" variant={role === "organiser" ? "accent" : "secondary"} className="w-full">
-                Company sign up
-              </Button>
-            </Link>
+          <div className="mt-6 grid overflow-hidden rounded-lg border border-white/10 sm:grid-cols-2">
             <Link href="/auth/signup?type=field-team">
-              <Button type="button" variant={role === "staff" ? "accent" : "secondary"} className="w-full">
-                Field-team sign up
+              <Button type="button" variant="secondary" className={`w-full rounded-none border-0 py-4 ${role === "staff" ? "bg-white/[0.03] text-white ring-0 shadow-[inset_0_-2px_0_#bef264]" : ""}`}>
+                <UserRound className="mr-2 h-4 w-4" />
+                Field-team account
               </Button>
             </Link>
-          </div>
+            <Link href="/auth/signup?type=company">
+              <Button type="button" variant="secondary" className={`w-full rounded-none border-0 py-4 ${role === "organiser" ? "bg-white/[0.03] text-white ring-0 shadow-[inset_0_-2px_0_#fb7185]" : ""}`}>
+                <Building2 className="mr-2 h-4 w-4" />
+                Company account
+              </Button>
+            </Link>
             </div>
-          </div>
           <form
             className="mt-6 space-y-4 sm:mt-8"
             onSubmit={async (event) => {
@@ -480,10 +521,15 @@ export function SignupForm() {
               </span>
             </label>
 
-            <Button type="submit" className="w-full" disabled={submitting}>
+            <Button
+              type="submit"
+              className={role === "staff" ? "w-full bg-lime-300 text-black hover:bg-lime-200" : "w-full"}
+              disabled={submitting}
+            >
               {submitting ? "Creating access..." : role === "organiser" ? "Request access" : "Create field-team profile"}
             </Button>
           </form>
+          </div>
         </Card>
       </section>
     </main>

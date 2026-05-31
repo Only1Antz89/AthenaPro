@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BriefcaseBusiness, Menu, UserCircle, X } from "lucide-react";
+import { BriefcaseBusiness, Building2, Menu, UserCircle, UsersRound, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/page-container";
 import { useStaffBook } from "@/features/app/use-staffbook";
-import { BRAND, NAV_LABELS } from "@/lib/brand";
+import { NAV_LABELS } from "@/lib/brand";
 
 export function SiteHeader() {
   const pathname = usePathname();
@@ -16,9 +16,10 @@ export function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const links = [
-    { href: "/jobs", label: NAV_LABELS.jobs },
-    { href: "/services", label: "Companies" },
-    { href: "/staff", label: NAV_LABELS.staff },
+    { href: "/jobs", label: "Find Roles" },
+    { href: "/services", label: "For Companies" },
+    { href: "/staff", label: "How It Works" },
+    { href: "/pricing", label: "Resources" },
     { href: "/about", label: NAV_LABELS.about },
     ...(session
       ? [
@@ -42,22 +43,22 @@ export function SiteHeader() {
   }, [pathname]);
 
   return (
-    <header className="theme-dark sticky top-0 z-30 border-b border-line/40 bg-canvas/80 backdrop-blur-2xl">
+    <header className="theme-dark sticky top-0 z-30 border-b border-white/10 bg-black/92 backdrop-blur-2xl">
       <PageContainer className="flex h-18 items-center justify-between gap-3 sm:h-20 sm:gap-4">
         <div className="flex items-center">
-          <Link href="/" className="font-display text-xl font-semibold tracking-[0.18em] text-ink sm:text-2xl">
-            {BRAND.name}
+          <Link href="/" className="font-display text-xl font-semibold tracking-[0.18em] text-white sm:text-2xl">
+            <span className="text-lime-300">ATHENA</span> PRO
           </Link>
         </div>
-        <nav className="hidden items-center gap-5 md:flex">
+        <nav className="hidden items-center gap-7 md:flex">
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               className={
                 pathname === link.href
-                  ? "text-sm font-semibold text-ink"
-                  : "text-sm text-slate transition hover:text-ink"
+                  ? "text-sm font-semibold text-lime-200"
+                  : "text-sm text-white/72 transition hover:text-white"
               }
             >
               {link.label}
@@ -94,14 +95,20 @@ export function SiteHeader() {
             </>
           ) : (
             <>
-              <Link href="/auth/signup?type=company">
-                <Button variant="secondary">Company sign up</Button>
-              </Link>
               <Link href="/auth/signup?type=field-team">
-                <Button variant="accent">Field-team sign up</Button>
+                <Button variant="accent" className="gap-2 bg-lime-300 text-black hover:bg-lime-200">
+                  <UsersRound className="h-4 w-4" />
+                  Field-team sign up
+                </Button>
+              </Link>
+              <Link href="/auth/signup?type=company">
+                <Button variant="accent" className="gap-2 bg-rose-400 text-black hover:bg-rose-300">
+                  <Building2 className="h-4 w-4" />
+                  Company sign up
+                </Button>
               </Link>
               <Link href="/auth/login">
-                <Button variant="secondary">{NAV_LABELS.login}</Button>
+                <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white">{NAV_LABELS.login}</Button>
               </Link>
             </>
           )}
@@ -110,19 +117,19 @@ export function SiteHeader() {
         <div className="flex items-center gap-2 md:hidden">
           {session ? (
             <Link href={profileHref}>
-              <Button className="px-4 py-2.5">
+              <Button className="bg-lime-300 px-4 py-2.5 text-black">
                 {session.role === "organiser" ? "Workspace" : "Profile"}
               </Button>
             </Link>
           ) : (
             <Link href="/auth/login">
-              <Button className="px-4 py-2.5">{NAV_LABELS.login}</Button>
+              <Button className="bg-white px-4 py-2.5 text-black">{NAV_LABELS.login}</Button>
             </Link>
           )}
           <Button
             type="button"
             variant="secondary"
-            className="h-11 w-11 px-0"
+            className="h-11 w-11 border-white/10 bg-white/5 px-0 text-white"
             aria-label={menuOpen ? "Close navigation" : "Open navigation"}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((current) => !current)}
@@ -133,7 +140,7 @@ export function SiteHeader() {
       </PageContainer>
 
       {menuOpen ? (
-        <div className="border-t border-line/40 bg-canvas/95 backdrop-blur-2xl md:hidden">
+        <div className="border-t border-white/10 bg-black/95 backdrop-blur-2xl md:hidden">
           <PageContainer className="py-4">
             <div className="space-y-2">
               {links.map((link) => (
@@ -142,8 +149,8 @@ export function SiteHeader() {
                   href={link.href}
                   className={
                     pathname === link.href
-                      ? "block rounded-[18px] bg-surfaceRaised/80 px-4 py-3 text-sm font-semibold text-ink"
-                      : "block rounded-[18px] px-4 py-3 text-sm text-slate transition hover:bg-surfaceRaised/70 hover:text-ink"
+                      ? "block rounded-[18px] bg-lime-300 px-4 py-3 text-sm font-semibold text-black"
+                      : "block rounded-[18px] px-4 py-3 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
                   }
                 >
                   {link.label}
@@ -151,7 +158,7 @@ export function SiteHeader() {
               ))}
             </div>
 
-            <div className="mt-4 border-t border-line/40 pt-4">
+              <div className="mt-4 border-t border-white/10 pt-4">
               {session ? (
                 <div className="space-y-3">
                   <div className="rounded-[20px] border border-line/40 bg-surfaceRaised/70 px-4 py-3">
@@ -175,12 +182,12 @@ export function SiteHeader() {
               ) : (
                 <div className="grid gap-3">
                   <Link href="/auth/signup?type=field-team" className="block">
-                    <Button variant="accent" className="w-full">
+                    <Button variant="accent" className="w-full bg-lime-300 text-black">
                       Field-team sign up
                     </Button>
                   </Link>
                   <Link href="/auth/signup?type=company" className="block">
-                    <Button variant="secondary" className="w-full">
+                    <Button variant="accent" className="w-full bg-rose-400 text-black">
                       Company sign up
                     </Button>
                   </Link>
