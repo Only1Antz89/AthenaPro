@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BriefcaseBusiness, Menu, UserCircle, X } from "lucide-react";
+import { BriefcaseBusiness, Menu, UserCircle, UserPlus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/page-container";
@@ -44,8 +44,8 @@ export function SiteHeader() {
   return (
     <header className="theme-dark sticky top-0 z-30 border-b border-white/10 bg-black/92 backdrop-blur-2xl">
       <PageContainer className="flex h-18 items-center justify-between gap-3 sm:h-20 sm:gap-4">
-        <div className="flex items-center">
-          <Link href="/" className="font-display text-xl font-semibold tracking-[0.18em] text-white sm:text-2xl">
+        <div className="flex min-w-0 items-center">
+          <Link href="/" className="inline-flex min-h-12 items-center whitespace-nowrap font-display text-lg font-semibold tracking-[0.13em] text-white sm:text-2xl sm:tracking-[0.18em]">
             <span className="text-lime-300">ATHENA</span> PRO
           </Link>
         </div>
@@ -99,27 +99,27 @@ export function SiteHeader() {
           )}
         </div>
 
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex shrink-0 items-center gap-2 md:hidden">
           {session ? (
             <Link href={profileHref}>
-              <Button className="bg-lime-300 px-4 py-2.5 text-black">
+              <Button className="min-h-12 bg-lime-300 px-4 py-2 text-sm text-black">
                 {session.role === "organiser" ? "Workspace" : "Profile"}
               </Button>
             </Link>
           ) : (
             <Link href="/auth/login">
-              <Button className="bg-white px-4 py-2.5 text-black">{NAV_LABELS.login}</Button>
+              <Button className="min-h-12 bg-white px-4 py-2 text-sm text-black">Login</Button>
             </Link>
           )}
           <Button
             type="button"
             variant="secondary"
-            className="h-11 w-11 border-white/10 bg-white/5 px-0 text-white"
+            className="h-12 w-12 border-white/10 bg-white/5 px-0 text-white"
             aria-label={menuOpen ? "Close navigation" : "Open navigation"}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((current) => !current)}
           >
-            {menuOpen ? <X className="h-4.5 w-4.5" /> : <Menu className="h-4.5 w-4.5" />}
+            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
         </div>
       </PageContainer>
@@ -127,15 +127,15 @@ export function SiteHeader() {
       {menuOpen ? (
         <div className="border-t border-white/10 bg-black/95 backdrop-blur-2xl md:hidden">
           <PageContainer className="py-4">
-            <div className="space-y-2">
+            <div className="grid gap-2">
               {links.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   className={
                     pathname === link.href
-                      ? "block rounded-[18px] bg-lime-300 px-4 py-3 text-sm font-semibold text-black"
-                      : "block rounded-[18px] px-4 py-3 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
+                      ? "block min-h-12 rounded-[14px] bg-lime-300 px-4 py-3 text-base font-semibold text-black"
+                      : "block min-h-12 rounded-[14px] border border-white/10 bg-white/[0.03] px-4 py-3 text-base text-white/78 transition hover:bg-white/10 hover:text-white"
                   }
                 >
                   {link.label}
@@ -146,15 +146,15 @@ export function SiteHeader() {
               <div className="mt-4 border-t border-white/10 pt-4">
               {session ? (
                 <div className="space-y-3">
-                  <div className="rounded-[20px] border border-line/40 bg-surfaceRaised/70 px-4 py-3">
-                    <p className="text-sm font-medium text-ink">{session.email}</p>
+                  <div className="rounded-[16px] border border-white/10 bg-white/[0.04] px-4 py-3">
+                    <p className="break-words text-sm font-medium text-white">{session.email}</p>
                     <p className="mt-1 text-xs uppercase tracking-[0.16em] text-slate">
                       {session.role === "organiser" ? "Company access" : "Field team access"}
                     </p>
                   </div>
                   <Button
                     variant="ghost"
-                    className="w-full justify-center"
+                    className="w-full justify-center border border-white/10 bg-white/[0.03] text-white hover:bg-white/10"
                     disabled={loading}
                     onClick={async () => {
                       await signOut();
@@ -167,8 +167,14 @@ export function SiteHeader() {
               ) : (
                 <div className="grid gap-3">
                   <Link href="/auth/login" className="block">
-                    <Button variant="accent" className="w-full bg-lime-300 text-black">
+                    <Button variant="accent" className="w-full min-h-12 bg-lime-300 text-black">
                       {NAV_LABELS.login}
+                    </Button>
+                  </Link>
+                  <Link href="/auth/signup?type=field-team" className="block">
+                    <Button variant="secondary" className="w-full min-h-12 gap-2 border-white/10 bg-white/[0.04] text-white hover:bg-white/10">
+                      <UserPlus className="h-4 w-4" />
+                      Create profile
                     </Button>
                   </Link>
                 </div>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Heart } from "lucide-react";
+import { ArrowRight, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { PageContainer } from "@/components/layout/page-container";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -60,12 +60,12 @@ export function JobDetail({ job }: { job: EnrichedJob }) {
   }, [job.id, provider, session?.role]);
 
   return (
-    <main>
+    <main className="pb-24 md:pb-0">
       <SiteHeader />
       <section className="py-10 sm:py-12 md:py-16">
         <PageContainer className="grid gap-8 lg:grid-cols-[1fr_360px]">
           <div>
-            <Link href="/jobs" className="text-sm font-semibold text-mist">
+            <Link href="/jobs" className="inline-flex min-h-11 items-center text-sm font-semibold text-mist">
               Back to job board
             </Link>
             <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -78,6 +78,21 @@ export function JobDetail({ job }: { job: EnrichedJob }) {
               <Badge variant="accent">{job.roleType}</Badge>
             </div>
             <p className="mt-5 max-w-3xl text-base leading-7 text-slate sm:text-lg">{job.description}</p>
+
+            <div className="mt-6 grid grid-cols-3 gap-2 rounded-[18px] border border-white/10 bg-white/[0.04] p-3 text-sm text-slate md:hidden">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/42">Rate</p>
+                <p className="mt-1 font-semibold text-ink">{formatCurrency(job.payRate)}/hr</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/42">Date</p>
+                <p className="mt-1 font-semibold text-ink">{formatDate(job.event.eventDate)}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/42">Where</p>
+                <p className="mt-1 font-semibold text-ink">{job.event.location}</p>
+              </div>
+            </div>
 
             <div className="mt-8 grid gap-4 md:grid-cols-2">
               {[
@@ -99,7 +114,7 @@ export function JobDetail({ job }: { job: EnrichedJob }) {
           </div>
 
           <div className="space-y-5">
-            <Card>
+            <Card id="apply">
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate">Company</p>
               <h2 className="mt-3 text-2xl font-semibold text-ink">{job.organization.name}</h2>
               <p className="mt-2 text-sm text-slate">Job context and event brief.</p>
@@ -147,7 +162,7 @@ export function JobDetail({ job }: { job: EnrichedJob }) {
                     <Button
                       type="button"
                       variant="secondary"
-                      className="gap-2"
+                        className="min-h-12 gap-2"
                       onClick={async () => {
                         try {
                           if (boardItem.isSaved) {
@@ -197,13 +212,13 @@ export function JobDetail({ job }: { job: EnrichedJob }) {
                       placeholder="Summarise your fit for this job, venue type, or access environment."
                     />
                   </Field>
-                  <Button type="submit" variant="accent" className="w-full sm:w-auto" disabled={submitting}>
+                  <Button type="submit" variant="accent" className="min-h-12 w-full sm:w-auto" disabled={submitting}>
                     {submitting ? "Submitting..." : "Apply for role"}
                   </Button>
                   <Button
                     type="button"
                     variant="secondary"
-                    className="ml-0 w-full gap-2 sm:ml-3 sm:w-auto"
+                    className="ml-0 min-h-12 w-full gap-2 sm:ml-3 sm:w-auto"
                     onClick={async () => {
                       try {
                         if (boardItem?.isSaved) {
@@ -229,7 +244,7 @@ export function JobDetail({ job }: { job: EnrichedJob }) {
                     Sign in as field team to apply and track job status.
                   </p>
                   <Link href="/auth/login">
-                    <Button variant="accent" className="w-full sm:w-auto">
+                    <Button variant="accent" className="min-h-12 w-full sm:w-auto">
                       Platform access
                     </Button>
                   </Link>
@@ -239,6 +254,20 @@ export function JobDetail({ job }: { job: EnrichedJob }) {
           </div>
         </PageContainer>
       </section>
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-black/90 px-4 pb-[max(env(safe-area-inset-bottom),14px)] pt-3 backdrop-blur md:hidden">
+        <div className="mx-auto flex max-w-md items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold text-white">{job.title}</p>
+            <p className="text-xs text-white/58">{formatCurrency(job.payRate)}/hr • {job.event.location}</p>
+          </div>
+          <Link href={session?.role === "staff" ? "#apply" : "/auth/login"} className="shrink-0">
+            <Button className="min-h-12 gap-2 bg-lime-300 text-black hover:bg-lime-200">
+              {session?.role === "staff" ? "Apply" : "Sign in"}
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
+      </div>
       <SiteFooter />
     </main>
   );

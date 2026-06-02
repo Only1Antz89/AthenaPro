@@ -23,37 +23,37 @@ export function LandingPage({ data }: { data: LandingHighlights }) {
     <main className="theme-dark overflow-x-hidden bg-black">
       <SiteHeader />
 
-      <section className="relative isolate min-h-[calc(100svh-80px)] overflow-hidden bg-black">
+      <section className="relative isolate overflow-hidden bg-black md:min-h-[calc(100svh-80px)]">
         <div className="absolute inset-0">
           <img
             src={HOME_IMAGES.hero}
             alt="Athena Pro team coordinating live event operations."
-            className="h-full w-full object-cover opacity-55"
+            className="h-full w-full object-cover opacity-62 md:opacity-55"
           />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.96)_0%,rgba(0,0,0,0.72)_46%,rgba(0,0,0,0.36)_100%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(190,242,100,0.18),transparent_0_26%),radial-gradient(circle_at_80%_20%,rgba(236,72,153,0.22),transparent_0_24%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.9)_0%,rgba(0,0,0,0.72)_44%,rgba(0,0,0,0.95)_100%)] md:bg-[linear-gradient(90deg,rgba(0,0,0,0.96)_0%,rgba(0,0,0,0.72)_46%,rgba(0,0,0,0.36)_100%)]" />
+          <div className="absolute inset-0 hidden bg-[radial-gradient(circle_at_18%_18%,rgba(190,242,100,0.18),transparent_0_26%),radial-gradient(circle_at_80%_20%,rgba(236,72,153,0.22),transparent_0_24%)] md:block" />
         </div>
 
-        <PageContainer className="relative z-10 flex min-h-[calc(100svh-72px)] flex-col justify-between py-8 sm:min-h-[calc(100svh-80px)] sm:py-10 md:py-14">
-          <div className="grid gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(320px,0.72fr)] lg:items-end">
+        <PageContainer className="relative z-10 flex flex-col justify-between py-6 sm:py-10 md:min-h-[calc(100svh-80px)] md:py-14">
+          <div className="grid gap-8 sm:gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(320px,0.72fr)] lg:items-end">
             <div className="max-w-4xl animate-fade-up">
               <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-lime-300">
                 Live events. Real people.
               </p>
-              <h1 className="text-balance mt-6 max-w-3xl font-display text-5xl font-semibold leading-[0.95] tracking-[-0.06em] text-white sm:text-6xl md:text-7xl">
+              <h1 className="text-balance mt-5 max-w-3xl font-display text-4xl font-semibold leading-[1.02] tracking-[-0.04em] text-white sm:text-6xl sm:leading-[0.95] sm:tracking-[-0.06em] md:text-7xl">
                 Your next role <span className="text-lime-300">starts here.</span>
               </h1>
-              <p className="mt-5 max-w-xl text-sm leading-7 text-slate sm:text-base sm:leading-8 md:text-lg">
+              <p className="mt-4 max-w-xl text-base leading-7 text-white/82 sm:text-base sm:leading-8 md:text-lg md:text-slate">
                 Get matched to paid event roles that fit your skills, availability, and reputation.
               </p>
-              <div className="mt-8 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:flex-wrap sm:gap-4">
+              <div className="mt-6 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:flex-wrap sm:gap-4">
                 <Link href="/auth/login">
-                  <Button className="w-full gap-2 bg-lime-300 text-black hover:bg-lime-200 sm:w-auto">
+                  <Button className="min-h-12 w-full gap-2 bg-lime-300 text-black hover:bg-lime-200 sm:w-auto">
                     Platform access <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
                 <Link href="/jobs">
-                  <Button variant="secondary" className="w-full border-white/20 bg-white/[0.08] text-white hover:bg-white/[0.14] sm:w-auto">
+                  <Button variant="secondary" className="min-h-12 w-full border-white/20 bg-white/[0.08] text-white hover:bg-white/[0.14] sm:w-auto">
                     Find roles
                   </Button>
                 </Link>
@@ -61,18 +61,18 @@ export function LandingPage({ data }: { data: LandingHighlights }) {
             </div>
 
             <div className="scroll-reveal-scale grid gap-4 lg:justify-items-end">
-              <div className="relative h-[300px] w-full overflow-hidden rounded-[30px] border border-line/60 bg-black/30 shadow-float sm:h-[360px] sm:rounded-[36px] lg:h-[420px] lg:max-w-[470px]">
+              <div className="relative h-[240px] w-full overflow-hidden rounded-[24px] border border-line/60 bg-black/30 shadow-float sm:h-[360px] sm:rounded-[36px] lg:h-[420px] lg:max-w-[470px]">
                 <img
                   src={HOME_IMAGES.support}
                   alt="Festival crowd with stage lights."
                   className="h-full w-full object-cover"
                 />
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,18,19,0.04),rgba(17,18,19,0.72))]" />
-                <div className="absolute inset-x-0 bottom-0 p-6">
+                <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-lime-300">
                     Social job feed
                   </p>
-                  <p className="mt-3 max-w-xs font-display text-3xl font-semibold tracking-[-0.05em] text-ink">
+                  <p className="mt-3 max-w-xs font-display text-2xl font-semibold leading-tight tracking-[-0.03em] text-white sm:text-3xl sm:tracking-[-0.05em]">
                     Swipe, save, apply, and message companies from one feed.
                   </p>
                 </div>
@@ -85,7 +85,7 @@ export function LandingPage({ data }: { data: LandingHighlights }) {
             </div>
           </div>
 
-          <div className="mt-10 grid gap-5 border-t border-line/60 pt-7 sm:mt-14 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-8 grid gap-4 border-t border-line/60 pt-6 sm:mt-14 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
             {HOME_METRICS.map((metric, index) => (
               <div
                 key={metric.label}

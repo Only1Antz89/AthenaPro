@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Bell, Heart } from "lucide-react";
+import { Bell, Heart, Search, SlidersHorizontal, X } from "lucide-react";
 import { toast } from "sonner";
 import { PageContainer } from "@/components/layout/page-container";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -96,6 +96,19 @@ export function JobsBrowser({ initialJobs }: { initialJobs: EnrichedJob[] }) {
     [boardByJobId, dateFrom, dateTo, initialJobs, location, minimumPay, query, roleTypes, savedOnly, sort]
   );
   const isStaff = session?.role === "staff";
+  const hasActiveFilters = Boolean(
+    query || location || roleTypes.length || minimumPay || dateFrom || dateTo || savedOnly || sort !== "newest"
+  );
+  const resetFilters = () => {
+    setQuery("");
+    setLocation("");
+    setRoleTypes([]);
+    setMinimumPay("");
+    setDateFrom("");
+    setDateTo("");
+    setSavedOnly(false);
+    setSort("newest");
+  };
   const mobileFeedItems = useMemo(() => {
     const visibleJobIds = new Set(jobs.map((job) => job.id));
     return (board.data?.items ?? []).filter((item) => visibleJobIds.has(item.job.id));
@@ -123,6 +136,85 @@ export function JobsBrowser({ initialJobs }: { initialJobs: EnrichedJob[] }) {
               <MobileSocialJobFeed board={board.data} items={mobileFeedItems} onRefresh={board.refresh} />
             </div>
           ) : null}
+
+          <Card className={cn("mt-7 rounded-[20px] border-white/10 bg-white/[0.04] p-4 md:hidden", isStaff && board.data ? "hidden" : "")}>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-lime-300">Search roles</p>
+                <p className="mt-1 text-sm text-white/64">{jobs.length} roles showing</p>
+              </div>
+              <SlidersHorizontal className="h-5 w-5 text-white/64" />
+            </div>
+            <div className="mt-4 grid grid-cols-1 gap-3">
+              <Field label="Search">
+                <div className="relative w-full min-w-0 max-w-full">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate" />
+                  <Input
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder="Role, venue, company"
+                    className="pl-10"
+                  />
+                </div>
+              </Field>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Location">
+                  <Input value={location} onChange={(event) => setLocation(event.target.value)} placeholder="London" />
+                </Field>
+                <Field label="Sort">
+                  <Select value={sort} onChange={(event) => setSort(event.target.value as typeof sort)}>
+                    {SORT_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Date from">
+                  <Input value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} type="date" />
+                </Field>
+                <Field label="Min rate">
+                  <Input value={minimumPay} onChange={(event) => setMinimumPay(event.target.value)} type="number" min={0} placeholder="15" />
+                </Field>
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate">Disciplines</p>
+                <div className="-mx-1 mt-3 flex gap-2 overflow-x-auto px-1 pb-1">
+                  {roleOptions.map((role) => {
+                    const selected = roleTypes.includes(role);
+
+                    return (
+                      <button
+                        key={role}
+                        type="button"
+                        onClick={() =>
+                          setRoleTypes((current) =>
+                            current.includes(role) ? current.filter((item) => item !== role) : [...current, role]
+                          )
+                        }
+                        className={cn(
+                          "min-h-11 shrink-0 rounded-full border px-4 text-sm transition",
+                          selected
+                            ? "border-lime-300 bg-lime-300 text-black"
+                            : "border-white/10 bg-white/[0.03] text-white/72"
+                        )}
+                      >
+                        {role}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              {hasActiveFilters ? (
+                <Button type="button" variant="secondary" className="min-h-12 w-full gap-2 border-white/10 bg-white/[0.03] text-white" onClick={resetFilters}>
+                  <X className="h-4 w-4" />
+                  Reset filters
+                </Button>
+              ) : null}
+            </div>
+          </Card>
 
           <Card className="mt-10 hidden md:block">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -212,15 +304,7 @@ export function JobsBrowser({ initialJobs }: { initialJobs: EnrichedJob[] }) {
                   <Button
                     type="button"
                     variant="secondary"
-                    onClick={() => {
-                      setQuery("");
-                      setLocation("");
-                      setRoleTypes([]);
-                      setMinimumPay("");
-                      setDateFrom("");
-                      setDateTo("");
-                      setSavedOnly(false);
-                    }}
+                    onClick={resetFilters}
                   >
                     Reset filters
                   </Button>
@@ -231,17 +315,22 @@ export function JobsBrowser({ initialJobs }: { initialJobs: EnrichedJob[] }) {
                 const boardItem = boardByJobId.get(job.id);
 
                 return (
-                  <Card key={job.id} className="grid gap-6 rounded-[28px] border-white/10 bg-white/[0.04] lg:grid-cols-[1fr_auto] lg:items-center">
+                  <Card key={job.id} className="grid gap-5 rounded-[22px] border-white/10 bg-white/[0.04] p-5 lg:grid-cols-[1fr_auto] lg:items-center lg:rounded-[28px]">
                     <div>
-                      <div className="flex flex-wrap items-center gap-3">
-                        <h2 className="text-xl font-semibold text-ink sm:text-2xl">{job.title}</h2>
+                      <div className="mb-4 grid grid-cols-3 gap-2 rounded-[16px] border border-white/10 bg-black/20 p-3 text-sm text-white/72 md:hidden">
+                        <span>{formatCurrency(job.payRate)}/hr</span>
+                        <span>{formatDate(job.event.eventDate)}</span>
+                        <span>{job.event.location}</span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                        <h2 className="w-full text-xl font-semibold text-ink sm:w-auto sm:text-2xl">{job.title}</h2>
                         <Badge variant="accent">{job.roleType}</Badge>
                         <Badge variant="neutral">{job.event.location}</Badge>
                         {boardItem?.applicationStatus ? <Badge variant="warning">{boardItem.applicationStatus}</Badge> : null}
                         {boardItem?.isSaved ? <Badge variant="neutral">Saved</Badge> : null}
                       </div>
-                      <p className="mt-2 text-base text-slate">{job.description}</p>
-                      <div className="mt-4 flex flex-wrap gap-4 text-sm text-slate">
+                      <p className="mt-3 text-sm leading-6 text-slate sm:text-base">{job.description}</p>
+                      <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm text-slate">
                         <span>{job.organization.name}</span>
                         <span>{job.event.title}</span>
                         <span>{formatDate(job.event.eventDate)}</span>
@@ -256,7 +345,7 @@ export function JobsBrowser({ initialJobs }: { initialJobs: EnrichedJob[] }) {
                         <Button
                           type="button"
                           variant="secondary"
-                          className="w-full gap-2 lg:w-auto"
+                          className="min-h-12 w-full gap-2 lg:w-auto"
                           onClick={async () => {
                             try {
                               if (boardItem?.isSaved) {
@@ -277,7 +366,7 @@ export function JobsBrowser({ initialJobs }: { initialJobs: EnrichedJob[] }) {
                         </Button>
                       ) : null}
                       <Link href={`/jobs/${job.id}`}>
-                        <Button className="w-full gap-2 lg:w-auto">
+                        <Button className="min-h-12 w-full gap-2 lg:w-auto">
                           <Bell className="h-4 w-4" />
                           View job
                         </Button>

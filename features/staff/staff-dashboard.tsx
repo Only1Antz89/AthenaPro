@@ -104,6 +104,24 @@ export function StaffDashboard() {
         title={`Welcome back, ${dashboard.data.profile.fullName}`}
         description="Track standing, applications, reviews, and live job matches."
       >
+        <div className="-mx-4 mb-6 overflow-x-auto px-4 pb-2 md:hidden">
+          <div className="flex min-w-max gap-2">
+            {[
+              { href: "/dashboard/staff/jobs", label: "Jobs" },
+              { href: "/dashboard/staff/profile", label: "Profile" },
+              { href: "/dashboard/staff/profile", label: "Messages" }
+            ].map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="inline-flex min-h-11 items-center rounded-full border border-white/10 bg-white/[0.04] px-4 text-sm font-medium text-white/78"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
             label="Overall score"
@@ -130,7 +148,7 @@ export function StaffDashboard() {
         <div className="mt-8 grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
           <div className="space-y-6">
             <Card>
-              <div className="flex items-center justify-between gap-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate">
                     Profile summary
@@ -138,7 +156,7 @@ export function StaffDashboard() {
                   <h2 className="mt-3 text-2xl font-semibold text-ink">{dashboard.data.profile.fullName}</h2>
                 </div>
                 <Link href="/dashboard/staff/profile">
-                  <Button variant="secondary" className="w-full sm:w-auto">
+                  <Button variant="secondary" className="min-h-12 w-full sm:w-auto">
                     Manage profile
                   </Button>
                 </Link>
@@ -185,7 +203,7 @@ export function StaffDashboard() {
             </Card>
 
             <Card>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate">
                     Recent requests
@@ -193,15 +211,15 @@ export function StaffDashboard() {
                   <h2 className="mt-3 text-2xl font-semibold text-ink">Deployment status at a glance</h2>
                 </div>
                 <Link href="/dashboard/staff/jobs">
-                  <Button variant="secondary" className="w-full sm:w-auto">
+                  <Button variant="secondary" className="min-h-12 w-full sm:w-auto">
                     Open jobs board
                   </Button>
                 </Link>
               </div>
               <div className="mt-6 space-y-4">
                 {dashboard.data.recentApplications.map((application) => (
-                  <div key={application.id} className="rounded-[24px] border border-white/10 bg-white/[0.03] px-4 py-4">
-                    <div className="flex items-center justify-between gap-4">
+                  <div key={application.id} className="rounded-[20px] border border-white/10 bg-white/[0.03] px-4 py-4 sm:rounded-[24px]">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                       <div>
                         <p className="font-semibold text-ink">{application.job.title}</p>
                         <p className="text-sm text-slate">
@@ -235,8 +253,8 @@ export function StaffDashboard() {
               </p>
               <div className="mt-5 space-y-4">
                 {dashboard.data.recommendedJobs.map((suggestion) => (
-                  <div key={suggestion.job.id} className="rounded-[24px] border border-white/10 bg-white/[0.03] px-4 py-4">
-                    <div className="flex items-center justify-between gap-4">
+                  <div key={suggestion.job.id} className="rounded-[20px] border border-white/10 bg-white/[0.03] px-4 py-4 sm:rounded-[24px]">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                       <div>
                         <p className="font-semibold text-ink">{suggestion.job.title}</p>
                         <p className="text-sm text-slate">
@@ -327,6 +345,7 @@ export function StaffDashboard() {
                   </Field>
                   <Button
                     variant="accent"
+                    className="min-h-12 w-full sm:w-auto"
                     onClick={async () => {
                       try {
                         const payload = clientFeedbackSchema.parse({

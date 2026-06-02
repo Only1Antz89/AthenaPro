@@ -195,7 +195,7 @@ export function OperatorProfileWorkspace() {
                 key={section}
                 type="button"
                 onClick={() => setActiveSection(section)}
-                className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                className={`min-h-11 rounded-full px-4 py-2 text-sm font-medium transition ${
                   activeSection === section
                     ? "bg-lime-300 text-canvas"
                     : "border border-white/10 bg-white/[0.03] text-slate hover:text-ink"
@@ -367,7 +367,7 @@ export function OperatorProfileWorkspace() {
                 </Field>
               </div>
               <Button
-                className="mt-5"
+                className="mt-5 min-h-12 w-full sm:w-auto"
                 onClick={async () => {
                   try {
                     const payload = updateOperatorProfileSchema.parse({
@@ -394,7 +394,7 @@ export function OperatorProfileWorkspace() {
                   <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate">Availability</p>
                   <h2 className="mt-3 text-2xl font-semibold text-ink">Weekly schedule</h2>
                 </div>
-                <Button type="button" variant={sameHours ? "accent" : "secondary"} onClick={() => setSameHours((current) => !current)}>
+                <Button type="button" variant={sameHours ? "accent" : "secondary"} className="min-h-12 w-full sm:w-auto" onClick={() => setSameHours((current) => !current)}>
                   {sameHours ? "Same hours on" : "Same hours off"}
                 </Button>
               </div>
@@ -416,6 +416,7 @@ export function OperatorProfileWorkspace() {
                     <Button
                       type="button"
                       variant={rule.isAvailable ? "accent" : "secondary"}
+                      className="min-h-12"
                       onClick={() =>
                         setAvailabilityRules((current) =>
                           current.map((item, itemIndex) =>
@@ -429,6 +430,7 @@ export function OperatorProfileWorkspace() {
                     <Button
                       type="button"
                       variant={rule.isAllDay ? "accent" : "secondary"}
+                      className="min-h-12"
                       onClick={() =>
                         setAvailabilityRules((current) =>
                           current.map((item, itemIndex) =>
@@ -491,7 +493,7 @@ export function OperatorProfileWorkspace() {
                 ))}
               </div>
               <Button
-                className="mt-5"
+                className="mt-5 min-h-12 w-full sm:w-auto"
                 onClick={async () => {
                   try {
                     const payload = updateOperatorAvailabilitySchema.parse({
@@ -586,7 +588,7 @@ export function OperatorProfileWorkspace() {
                 </div>
               </div>
               <Button
-                className="mt-5"
+                className="mt-5 min-h-12 w-full sm:w-auto"
                 variant="secondary"
                 onClick={async () => {
                   try {
@@ -610,6 +612,7 @@ export function OperatorProfileWorkspace() {
                   <Input value={email} onChange={(event) => setEmail(event.target.value)} />
                 </Field>
                 <Button
+                  className="min-h-12 w-full sm:w-auto"
                   onClick={async () => {
                     try {
                       const payload = updateEmailSchema.parse({ email });
@@ -633,6 +636,7 @@ export function OperatorProfileWorkspace() {
                 </Field>
                 <Button
                   variant="secondary"
+                  className="min-h-12 w-full sm:w-auto"
                   onClick={async () => {
                     try {
                       const payload = updatePasswordSchema.parse({ password, confirmPassword });
