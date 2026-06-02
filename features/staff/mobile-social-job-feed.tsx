@@ -1,14 +1,26 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Bell, Bookmark, BriefcaseBusiness, CalendarDays, Heart, MapPin, MessageCircle, PlusCircle, Send, UserCircle, UserPlus, WalletCards, X } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useStaffBook } from "@/features/app/use-staffbook";
 import { toDisplayError } from "@/lib/errors";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
 import type { StaffJobsBoardData, StaffJobsBoardItem } from "@/types/domain";
+
+export function getSwipeDecision(deltaX: number, deltaY: number): "left" | "right" | null {
+  const absX = Math.abs(deltaX);
+  const absY = Math.abs(deltaY);
+
+  if (absX < 110 || absX < absY * 1.45) {
+    return null;
+  }
+
+  return deltaX > 0 ? "right" : "left";
+}
 
 function urlBase64ToUint8Array(value: string) {
   const padding = "=".repeat((4 - (value.length % 4)) % 4);
@@ -27,9 +39,18 @@ export function MobileSocialJobFeed({
   onRefresh: () => Promise<unknown>;
 }) {
   const { provider } = useStaffBook();
+  const router = useRouter();
   const [hiddenJobIds, setHiddenJobIds] = useState<string[]>([]);
   const [likedPulseJobId, setLikedPulseJobId] = useState<string | null>(null);
-  const touchStartX = useRef<number | null>(null);
+  const [dragState, setDragState] = useState<{
+    jobId: string;
+    startX: number;
+    startY: number;
+    deltaX: number;
+    deltaY: number;
+    isHorizontal: boolean;
+  } | null>(null);
+  const [reaction, setReaction] = useState<{ jobId: string; direction: "left" | "right" } | null>(null);
   const visibleItems = items.filter((item) => !item.isDismissed && !hiddenJobIds.includes(item.job.id));
   const unreadMessages = board.conversations.reduce((total, thread) => total + thread.unreadCount, 0);
   const companies = useMemo(
@@ -78,6 +99,7 @@ export function MobileSocialJobFeed({
 
   async function handleSwipe(item: StaffJobsBoardItem, direction: "left" | "right") {
     try {
+      setReaction({ jobId: item.job.id, direction });
       if (direction === "right") {
         await provider.saveJob(item.job.id);
         toast.success("Job saved.");
@@ -89,6 +111,67 @@ export function MobileSocialJobFeed({
       await onRefresh();
     } catch (error) {
       toast.error(toDisplayError(error));
+    } finally {
+      setTimeout(() => setReaction((current) => (current?.jobId === item.job.id ? null : current)), 520);
+    }
+  }
+
+  function beginDrag(event: React.PointerEvent<HTMLElement>, item: StaffJobsBoardItem) {
+    const target = event.target as HTMLElement;
+
+    if (target.closest("button,a,input,textarea,select")) {
+      return;
+    }
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setDragState({
+      jobId: item.job.id,
+      startX: event.clientX,
+      startY: event.clientY,
+      deltaX: 0,
+      deltaY: 0,
+      isHorizontal: false
+    });
+  }
+
+  function moveDrag(event: React.PointerEvent<HTMLElement>, item: StaffJobsBoardItem) {
+    setDragState((current) => {
+      if (!current || current.jobId !== item.job.id) {
+        return current;
+      }
+
+      const deltaX = event.clientX - current.startX;
+      const deltaY = event.clientY - current.startY;
+      const absX = Math.abs(deltaX);
+      const absY = Math.abs(deltaY);
+      const isHorizontal = current.isHorizontal || (absX > 18 && absX > absY * 1.35);
+
+      if (isHorizontal) {
+        event.preventDefault();
+      }
+
+      return {
+        ...current,
+        deltaX,
+        deltaY,
+        isHorizontal
+      };
+    });
+  }
+
+  function endDrag(item: StaffJobsBoardItem) {
+    const current = dragState;
+
+    setDragState(null);
+
+    if (!current || current.jobId !== item.job.id || !current.isHorizontal) {
+      return;
+    }
+
+    const decision = getSwipeDecision(current.deltaX, current.deltaY);
+
+    if (decision) {
+      void handleSwipe(item, decision);
     }
   }
 
@@ -105,13 +188,14 @@ export function MobileSocialJobFeed({
 
   async function messageCompany(item: StaffJobsBoardItem) {
     try {
-      await provider.sendConversationMessage({
+      const thread = await provider.sendConversationMessage({
         organizationId: item.job.organization.id,
         jobId: item.job.id,
         body: `Hi ${item.job.organization.name}, I have a question about ${item.job.title}.`
       });
       toast.success("Message thread opened.");
       await onRefresh();
+      router.push(`/dashboard/staff/profile?section=messages&tab=event&thread=${thread.id}`);
     } catch (error) {
       toast.error(toDisplayError(error));
     }
@@ -141,7 +225,7 @@ export function MobileSocialJobFeed({
               ) : null}
             </button>
             <Link
-              href="/dashboard/staff/profile"
+              href="/dashboard/staff/profile?section=messages"
               className="relative inline-flex h-11 w-11 items-center justify-center rounded-full text-white"
               aria-label="Open messages"
             >
@@ -190,29 +274,39 @@ export function MobileSocialJobFeed({
           {visibleItems.map((item) => {
             const media = item.mediaSlides[0]?.imageUrl;
             const slideCount = Math.max(item.mediaSlides.length, 1);
+            const itemDrag = dragState?.jobId === item.job.id ? dragState : null;
+            const dragX = itemDrag?.isHorizontal ? Math.max(Math.min(itemDrag.deltaX, 150), -150) : 0;
+            const activeReaction = reaction?.jobId === item.job.id ? reaction.direction : null;
+            const previewDirection = dragX > 36 ? "right" : dragX < -36 ? "left" : null;
 
             return (
               <article
                 key={item.job.id}
                 className="relative overflow-hidden rounded-[22px] border border-white/12 bg-[#090d10] shadow-[0_24px_80px_rgba(0,0,0,0.6)] sm:rounded-[28px]"
+                style={{
+                  transform: `translateX(${dragX}px) rotate(${dragX / 24}deg)`,
+                  transition: itemDrag ? "none" : "transform 260ms cubic-bezier(0.22,1,0.36,1)",
+                  touchAction: itemDrag?.isHorizontal ? "none" : "pan-y"
+                }}
+                onPointerDown={(event) => beginDrag(event, item)}
+                onPointerMove={(event) => moveDrag(event, item)}
+                onPointerUp={() => endDrag(item)}
+                onPointerCancel={() => setDragState(null)}
                 onDoubleClick={() => like(item)}
-                onTouchStart={(event) => {
-                  touchStartX.current = event.touches[0]?.clientX ?? null;
-                }}
-                onTouchEnd={(event) => {
-                  if (touchStartX.current === null) {
-                    return;
-                  }
-                  const delta = (event.changedTouches[0]?.clientX ?? touchStartX.current) - touchStartX.current;
-                  touchStartX.current = null;
-
-                  if (delta > 70) {
-                    void handleSwipe(item, "right");
-                  } else if (delta < -70) {
-                    void handleSwipe(item, "left");
-                  }
-                }}
               >
+                {previewDirection || activeReaction ? (
+                  <div
+                    className={cn(
+                      "pointer-events-none absolute inset-0 z-20 flex items-center justify-center border-4 text-3xl font-black uppercase tracking-[0.18em] transition-opacity",
+                      (activeReaction ?? previewDirection) === "right"
+                        ? "border-lime-300 bg-lime-300/18 text-lime-200"
+                        : "border-rose-400 bg-rose-500/18 text-rose-200",
+                      activeReaction || Math.abs(dragX) > 80 ? "opacity-100" : "opacity-75"
+                    )}
+                  >
+                    {(activeReaction ?? previewDirection) === "right" ? "Saved" : "Rejected"}
+                  </div>
+                ) : null}
                 <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-4 sm:px-5 sm:py-5">
                   <div className="flex min-w-0 items-center gap-3">
                     <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-lime-300 bg-black text-base font-bold text-lime-300 sm:h-16 sm:w-16 sm:text-xl">
@@ -354,11 +448,11 @@ export function MobileSocialJobFeed({
             <Heart className="h-6 w-6" />
             Saved
           </Link>
-          <Link href="/dashboard/staff/jobs" className="flex flex-col items-center gap-1">
+          <Link href="/dashboard/staff/profile?section=applications" className="flex flex-col items-center gap-1">
             <PlusCircle className="h-6 w-6" />
             Applications
           </Link>
-          <Link href="/dashboard/staff/profile" className="flex flex-col items-center gap-1">
+          <Link href="/dashboard/staff/profile?section=messages" className="flex flex-col items-center gap-1">
             <MessageCircle className="h-6 w-6" />
             Messages
           </Link>

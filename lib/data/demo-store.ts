@@ -1133,7 +1133,7 @@ export const demoStore = {
       jobId: input.jobId,
       staffId: session.userId,
       status: "pending",
-      coverNote: input.coverNote,
+      coverNote: input.coverNote ?? "",
       appliedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     });

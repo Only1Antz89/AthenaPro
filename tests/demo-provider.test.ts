@@ -65,12 +65,12 @@ describe("demo provider workflow", () => {
     const targetJob = jobs.find((job) => !alreadyApplied.has(job.id));
 
     await provider.applyToJob({
-      jobId: targetJob!.id,
-      coverNote: "Available and experienced in guest-facing event support."
+      jobId: targetJob!.id
     });
 
     const dashboard = await provider.getStaffDashboard();
-    expect(dashboard.recentApplications.length).toBeGreaterThan(0);
+    const submitted = dashboard.recentApplications.find((application) => application.job.id === targetJob!.id);
+    expect(submitted?.coverNote).toBe("");
 
     await expect(
       provider.applyToJob({
@@ -211,6 +211,16 @@ describe("demo provider workflow", () => {
     await provider.followCompany("org_ember");
     await provider.likeJob("job_3");
     await provider.dismissJob("job_4");
+    let workspace = await provider.getOperatorWorkspace();
+
+    expect(workspace.dismissedJobs.some((item) => item.job.id === "job_4")).toBe(true);
+
+    await provider.restoreDismissedJob("job_4");
+    workspace = await provider.getOperatorWorkspace();
+
+    expect(workspace.dismissedJobs.some((item) => item.job.id === "job_4")).toBe(false);
+
+    await provider.dismissJob("job_4");
     await provider.registerPushSubscription({
       endpoint: "https://push.example.test/subscription",
       keys: { p256dh: "demo-p256dh", auth: "demo-auth" },
@@ -223,7 +233,7 @@ describe("demo provider workflow", () => {
     });
 
     const board = await provider.getStaffJobsBoard();
-    const workspace = await provider.getOperatorWorkspace();
+    workspace = await provider.getOperatorWorkspace();
 
     expect(board.items.find((item) => item.job.id === "job_3")?.isLiked).toBe(true);
     expect(board.items.find((item) => item.job.id === "job_4")?.isDismissed).toBe(true);

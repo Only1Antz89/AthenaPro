@@ -1336,7 +1336,7 @@ export class SupabaseDataProvider implements StaffBookDataProvider {
       job_id: input.jobId,
       staff_id: session.user.id,
       status: "pending",
-      cover_note: input.coverNote
+      cover_note: input.coverNote ?? ""
     });
 
     if (error) {

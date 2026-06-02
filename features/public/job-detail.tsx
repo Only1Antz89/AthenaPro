@@ -10,8 +10,6 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Field } from "@/components/ui/field";
-import { Textarea } from "@/components/ui/textarea";
 import { useQueryState } from "@/features/app/use-query-state";
 import { useStaffBook } from "@/features/app/use-staffbook";
 import { formatStatusLabel } from "@/lib/brand";
@@ -31,7 +29,6 @@ function getEstimatedPay(job: EnrichedJob) {
 
 export function JobDetail({ job }: { job: EnrichedJob }) {
   const { provider, session } = useStaffBook();
-  const [coverNote, setCoverNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const board = useQueryState<StaffJobsBoardData | null>(
     () => (session?.role === "staff" ? provider.getStaffJobsBoard() : Promise.resolve(null)),
@@ -48,6 +45,12 @@ export function JobDetail({ job }: { job: EnrichedJob }) {
     minimumAgeMet ? "Minimum age requirement looks clear" : `Minimum age is ${job.minimumAge}`,
     boardItem?.matchReasons[0] ?? "Availability and location fit are considered after sign-in"
   ];
+  const matchSignals = boardItem
+    ? [
+        `${boardItem.matchScore.toFixed(0)} fit score`,
+        ...boardItem.matchReasons.slice(0, 3)
+      ]
+    : eligibility;
 
   useEffect(() => {
     if (session?.role !== "staff") {
@@ -122,7 +125,7 @@ export function JobDetail({ job }: { job: EnrichedJob }) {
               <div className="mt-5 rounded-[20px] border border-line/60 bg-surfaceRaised/50 px-4 py-4">
                 <p className="text-sm font-semibold text-ink">Eligibility signals</p>
                 <div className="mt-3 space-y-2 text-sm text-slate">
-                  {eligibility.map((item) => (
+                  {matchSignals.map((item) => (
                     <p key={item}>{item}</p>
                   ))}
                 </div>
@@ -191,12 +194,10 @@ export function JobDetail({ job }: { job: EnrichedJob }) {
                     try {
                       setSubmitting(true);
                       const payload = jobApplicationSchema.parse({
-                        jobId: job.id,
-                        coverNote
+                        jobId: job.id
                       });
                       await provider.applyToJob(payload);
                       toast.success("Application submitted.");
-                      setCoverNote("");
                       await board.refresh();
                     } catch (error) {
                       toast.error(toDisplayError(error));
@@ -205,13 +206,14 @@ export function JobDetail({ job }: { job: EnrichedJob }) {
                     }
                   }}
                 >
-                  <Field label="Operational note" hint="Keep it concise and relevant to the live environment.">
-                    <Textarea
-                      value={coverNote}
-                      onChange={(event) => setCoverNote(event.target.value)}
-                      placeholder="Summarise your fit for this job, venue type, or access environment."
-                    />
-                  </Field>
+                  <div className="rounded-[20px] border border-lime-300/20 bg-lime-300/10 px-4 py-4">
+                    <p className="text-sm font-semibold text-lime-100">Application uses your profile match</p>
+                    <div className="mt-3 space-y-2 text-sm text-slate">
+                      {matchSignals.map((item) => (
+                        <p key={`apply-${item}`}>{item}</p>
+                      ))}
+                    </div>
+                  </div>
                   <Button type="submit" variant="accent" className="min-h-12 w-full sm:w-auto" disabled={submitting}>
                     {submitting ? "Submitting..." : "Apply for role"}
                   </Button>

@@ -104,7 +104,7 @@ export const createJobSchema = z.object({
 
 export const jobApplicationSchema = z.object({
   jobId: z.string().min(2),
-  coverNote: z.string().min(10)
+  coverNote: z.string().max(1000).optional().default("")
 });
 
 export const jobAlertSchema = z
@@ -265,7 +265,7 @@ export type StaffSignupInput = z.infer<typeof staffSignupSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type CreateEventInput = z.infer<typeof createEventSchema>;
 export type CreateJobInput = z.infer<typeof createJobSchema>;
-export type JobApplicationInput = z.infer<typeof jobApplicationSchema>;
+export type JobApplicationInput = z.input<typeof jobApplicationSchema>;
 export type JobAlertInput = z.infer<typeof jobAlertSchema>;
 export type BrowseJobsFiltersInput = z.infer<typeof browseJobsFiltersSchema>;
 export type OperatorReviewInput = z.infer<typeof operatorReviewSchema>;
