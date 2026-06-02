@@ -24,12 +24,16 @@ alter table if exists public.client_feedback enable row level security;
 alter table if exists public.notifications enable row level security;
 alter table if exists public.notification_email_jobs enable row level security;
 
-create or replace function public.is_org_member(org_id uuid)
+create schema if not exists private;
+revoke all on schema private from public;
+grant usage on schema private to anon, authenticated;
+
+create or replace function private.is_org_member(org_id uuid)
 returns boolean
 language sql
 stable
 security definer
-set search_path = public
+set search_path = ''
 as $$
   select exists (
     select 1
@@ -39,9 +43,8 @@ as $$
   );
 $$;
 
-revoke execute on function public.is_org_member(uuid) from public;
-revoke execute on function public.is_org_member(uuid) from anon;
-revoke execute on function public.is_org_member(uuid) from authenticated;
+revoke execute on function private.is_org_member(uuid) from public;
+grant execute on function private.is_org_member(uuid) to anon, authenticated;
 
 drop policy if exists "profiles_select_self_or_public_staff" on public.profiles;
 create policy "profiles_select_self_or_public_staff"
@@ -144,7 +147,21 @@ drop policy if exists "organizations_select_members" on public.organizations;
 create policy "organizations_select_members"
 on public.organizations
 for select
-using (public.is_org_member(id));
+using (
+  private.is_org_member(id)
+  or exists (
+    select 1
+    from public.jobs j
+    where j.organization_id = organizations.id
+      and j.status in ('open', 'closed')
+  )
+  or exists (
+    select 1
+    from public.events e
+    where e.organization_id = organizations.id
+      and e.status in ('published', 'completed')
+  )
+);
 
 drop policy if exists "organizations_insert_owner" on public.organizations;
 create policy "organizations_insert_owner"
@@ -156,7 +173,7 @@ drop policy if exists "memberships_select_self_or_org_members" on public.organiz
 create policy "memberships_select_self_or_org_members"
 on public.organization_memberships
 for select
-using (profile_id = auth.uid() or public.is_org_member(organization_id));
+using (profile_id = auth.uid() or private.is_org_member(organization_id));
 
 drop policy if exists "memberships_insert_self" on public.organization_memberships;
 create policy "memberships_insert_self"
@@ -168,27 +185,27 @@ drop policy if exists "events_public_read_published" on public.events;
 create policy "events_public_read_published"
 on public.events
 for select
-using (status in ('published', 'completed') or public.is_org_member(organization_id));
+using (status in ('published', 'completed') or private.is_org_member(organization_id));
 
 drop policy if exists "events_org_manage" on public.events;
 create policy "events_org_manage"
 on public.events
 for all
-using (public.is_org_member(organization_id))
-with check (public.is_org_member(organization_id) and created_by = auth.uid());
+using (private.is_org_member(organization_id))
+with check (private.is_org_member(organization_id) and created_by = auth.uid());
 
 drop policy if exists "jobs_public_read_open_closed" on public.jobs;
 create policy "jobs_public_read_open_closed"
 on public.jobs
 for select
-using (status in ('open', 'closed') or public.is_org_member(organization_id));
+using (status in ('open', 'closed') or private.is_org_member(organization_id));
 
 drop policy if exists "jobs_org_manage" on public.jobs;
 create policy "jobs_org_manage"
 on public.jobs
 for all
-using (public.is_org_member(organization_id))
-with check (public.is_org_member(organization_id) and created_by = auth.uid());
+using (private.is_org_member(organization_id))
+with check (private.is_org_member(organization_id) and created_by = auth.uid());
 
 drop policy if exists "applications_staff_read_own" on public.applications;
 create policy "applications_staff_read_own"
@@ -196,7 +213,7 @@ on public.applications
 for select
 using (
   staff_id = auth.uid()
-  or public.is_org_member((select organization_id from public.jobs where id = job_id))
+  or private.is_org_member((select organization_id from public.jobs where id = job_id))
 );
 
 drop policy if exists "applications_staff_insert_own" on public.applications;
@@ -217,14 +234,14 @@ on public.applications
 for update
 using (
   staff_id = auth.uid()
-  or public.is_org_member((select organization_id from public.jobs where id = job_id))
+  or private.is_org_member((select organization_id from public.jobs where id = job_id))
 )
 with check (
   (
     staff_id = auth.uid()
     and status = 'withdrawn'
   )
-  or public.is_org_member((select organization_id from public.jobs where id = job_id))
+  or private.is_org_member((select organization_id from public.jobs where id = job_id))
 );
 
 drop policy if exists "history_read_related_users" on public.application_status_history;
@@ -237,7 +254,7 @@ using (
     from public.applications a
     join public.jobs j on j.id = a.job_id
     where a.id = application_id
-      and (a.staff_id = auth.uid() or public.is_org_member(j.organization_id))
+      and (a.staff_id = auth.uid() or private.is_org_member(j.organization_id))
   )
 );
 
@@ -358,17 +375,17 @@ begin
       on public.job_media_slides
       for select
       using (
-        public.is_org_member(organization_id)
+        private.is_org_member(organization_id)
         or exists (select 1 from public.jobs j where j.id = job_id and j.status = 'open')
       )
     $policy$;
     execute 'drop policy if exists "job_media_slides_org_manage" on public.job_media_slides';
-    execute 'create policy "job_media_slides_org_manage" on public.job_media_slides for all using (public.is_org_member(organization_id)) with check (public.is_org_member(organization_id))';
+    execute 'create policy "job_media_slides_org_manage" on public.job_media_slides for all using (private.is_org_member(organization_id)) with check (private.is_org_member(organization_id))';
   end if;
 
   if to_regclass('public.conversation_threads') is not null then
     execute 'drop policy if exists "conversation_threads_read_related" on public.conversation_threads';
-    execute 'create policy "conversation_threads_read_related" on public.conversation_threads for select using (staff_id = auth.uid() or public.is_org_member(organization_id))';
+    execute 'create policy "conversation_threads_read_related" on public.conversation_threads for select using (staff_id = auth.uid() or private.is_org_member(organization_id))';
     execute 'drop policy if exists "conversation_threads_insert_related" on public.conversation_threads';
     execute $policy$
       create policy "conversation_threads_insert_related"
@@ -376,11 +393,11 @@ begin
       for insert
       with check (
         staff_id = auth.uid()
-        or public.is_org_member(organization_id)
+        or private.is_org_member(organization_id)
       )
     $policy$;
     execute 'drop policy if exists "conversation_threads_update_related" on public.conversation_threads';
-    execute 'create policy "conversation_threads_update_related" on public.conversation_threads for update using (staff_id = auth.uid() or public.is_org_member(organization_id)) with check (staff_id = auth.uid() or public.is_org_member(organization_id))';
+    execute 'create policy "conversation_threads_update_related" on public.conversation_threads for update using (staff_id = auth.uid() or private.is_org_member(organization_id)) with check (staff_id = auth.uid() or private.is_org_member(organization_id))';
   end if;
 
   if to_regclass('public.conversation_messages') is not null then
@@ -393,7 +410,7 @@ begin
         exists (
           select 1 from public.conversation_threads t
           where t.id = thread_id
-            and (t.staff_id = auth.uid() or public.is_org_member(t.organization_id))
+            and (t.staff_id = auth.uid() or private.is_org_member(t.organization_id))
         )
       )
     $policy$;
@@ -407,7 +424,7 @@ begin
         and exists (
           select 1 from public.conversation_threads t
           where t.id = thread_id
-            and (t.staff_id = auth.uid() or public.is_org_member(t.organization_id))
+            and (t.staff_id = auth.uid() or private.is_org_member(t.organization_id))
         )
       )
     $policy$;
@@ -420,14 +437,14 @@ begin
         exists (
           select 1 from public.conversation_threads t
           where t.id = thread_id
-            and (t.staff_id = auth.uid() or public.is_org_member(t.organization_id))
+            and (t.staff_id = auth.uid() or private.is_org_member(t.organization_id))
         )
       )
       with check (
         exists (
           select 1 from public.conversation_threads t
           where t.id = thread_id
-            and (t.staff_id = auth.uid() or public.is_org_member(t.organization_id))
+            and (t.staff_id = auth.uid() or private.is_org_member(t.organization_id))
         )
       )
     $policy$;
@@ -451,7 +468,7 @@ on public.ratings
 for insert
 with check (
   organiser_id = auth.uid()
-  and public.is_org_member(organization_id)
+  and private.is_org_member(organization_id)
   and exists (
     select 1
     from public.applications a
@@ -470,7 +487,7 @@ do $$
 begin
   if to_regclass('public.client_feedback') is not null then
     execute 'drop policy if exists "client_feedback_read_self_or_org" on public.client_feedback';
-    execute 'create policy "client_feedback_read_self_or_org" on public.client_feedback for select using (staff_id = auth.uid() or public.is_org_member(organization_id))';
+    execute 'create policy "client_feedback_read_self_or_org" on public.client_feedback for select using (staff_id = auth.uid() or private.is_org_member(organization_id))';
     execute 'drop policy if exists "client_feedback_insert_self" on public.client_feedback';
     execute $policy$
       create policy "client_feedback_insert_self"
@@ -511,3 +528,5 @@ begin
     execute 'create policy "notification_email_jobs_read_self" on public.notification_email_jobs for select using (user_id = auth.uid())';
   end if;
 end $$;
+
+drop function if exists public.is_org_member(uuid);

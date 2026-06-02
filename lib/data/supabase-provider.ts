@@ -137,6 +137,37 @@ function mapOrganization(row: Record<string, unknown>): Organization {
   };
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function requireEmbeddedRelation(
+  row: Record<string, unknown>,
+  relationName: "events" | "organizations",
+  ownerLabel: string
+) {
+  const relation = row[relationName];
+
+  if (!isRecord(relation) || !relation.id) {
+    throw new AppError(
+      `Workspace data unavailable: ${ownerLabel} ${relationName.slice(0, -1)} data is not visible. Apply the complete Supabase migration and policies.`,
+      "SUPABASE_RELATION_NOT_VISIBLE",
+      500
+    );
+  }
+
+  return relation;
+}
+
+function fallbackOrganization(row: Record<string, unknown>): Organization {
+  return {
+    id: String(row.organization_id ?? "unknown"),
+    name: "Company workspace",
+    slug: "company-workspace",
+    createdAt: String(row.created_at ?? new Date().toISOString())
+  };
+}
+
 function mapEvent(row: Record<string, unknown>): Event {
   return {
     id: String(row.id),
@@ -415,10 +446,13 @@ async function getJobRows(client: any, filters?: { id?: string; organizationId?:
 }
 
 function toEnrichedJob(row: Record<string, unknown>): EnrichedJob {
+  const event = requireEmbeddedRelation(row, "events", "job");
+  const organization = requireEmbeddedRelation(row, "organizations", "job");
+
   return {
     ...mapJob(row),
-    event: mapEvent(row.events as Record<string, unknown>),
-    organization: mapOrganization(row.organizations as Record<string, unknown>),
+    event: mapEvent(event),
+    organization: mapOrganization(organization),
     applicationCount: Array.isArray(row.applications) ? row.applications.length : 0
   };
 }
@@ -463,7 +497,7 @@ async function getConversationThreadsForUser(client: any, session: AuthSession) 
       subject: String(row.subject ?? "Company conversation"),
       lastMessageAt: String(row.last_message_at),
       createdAt: String(row.created_at),
-      organization: mapOrganization(row.organizations as Record<string, unknown>),
+      organization: isRecord(row.organizations) ? mapOrganization(row.organizations) : fallbackOrganization(row),
       messages,
       unreadCount: messages.filter((message) => message.senderId !== session.userId && !message.readAt).length
     };
