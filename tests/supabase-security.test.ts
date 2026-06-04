@@ -6,6 +6,10 @@ const workspaceRoot = path.resolve(__dirname, "..");
 const schemaSql = readFileSync(path.join(workspaceRoot, "supabase/schema.sql"), "utf8");
 const athenaAdminSql = readFileSync(path.join(workspaceRoot, "supabase/athena-admin-schema.sql"), "utf8");
 const policiesSql = readFileSync(path.join(workspaceRoot, "supabase/policies.sql"), "utf8");
+const completePlatformMigrationSql = readFileSync(
+  path.join(workspaceRoot, "supabase/migrations/20260602_complete_platform.sql"),
+  "utf8"
+);
 
 const publicViews = [
   "staff_rating_summary",
@@ -46,14 +50,29 @@ const athenaRlsTables = [
   "audit_logs"
 ];
 
-const definerHelpers = [
-  { sql: schemaSql, signature: "public.log_application_status_change()" },
-  { sql: athenaAdminSql, signature: "public.is_active_admin_user()" },
-  { sql: athenaAdminSql, signature: "public.is_client_owner(uuid)" },
-  { sql: athenaAdminSql, signature: "public.is_operator_owner(uuid)" },
-  { sql: athenaAdminSql, signature: "public.is_assignment_client_owner(uuid)" },
-  { sql: athenaAdminSql, signature: "public.is_assignment_operator(uuid)" },
-  { sql: policiesSql, signature: "public.is_org_member(uuid)" }
+const exposedDefinerHelpers = [
+  { sql: schemaSql, signature: "public.log_application_status_change()" }
+];
+
+const privateRlsHelpers = [
+  { sql: policiesSql, name: "is_org_member", signature: "private.is_org_member(uuid)" },
+  { sql: athenaAdminSql, name: "is_active_admin_user", signature: "private.is_active_admin_user()" },
+  { sql: athenaAdminSql, name: "is_client_owner", signature: "private.is_client_owner(uuid)" },
+  { sql: athenaAdminSql, name: "is_operator_owner", signature: "private.is_operator_owner(uuid)" },
+  { sql: athenaAdminSql, name: "is_assignment_client_owner", signature: "private.is_assignment_client_owner(uuid)" },
+  { sql: athenaAdminSql, name: "is_assignment_operator", signature: "private.is_assignment_operator(uuid)" }
+];
+
+const staffEngagementTables = [
+  "saved_jobs",
+  "job_alerts",
+  "company_follows",
+  "job_likes",
+  "dismissed_jobs",
+  "job_media_slides",
+  "conversation_threads",
+  "conversation_messages",
+  "push_subscriptions"
 ];
 
 describe("supabase security hardening", () => {
@@ -80,7 +99,7 @@ describe("supabase security hardening", () => {
   });
 
   it("keeps the authenticated admin bootstrap path available", () => {
-    expect(athenaAdminSql).toContain("create or replace function public.is_active_admin_user()");
+    expect(athenaAdminSql).toContain("create or replace function private.is_active_admin_user()");
     expect(athenaAdminSql).toContain('create policy "admin_users_select_self"');
   });
 
@@ -91,16 +110,50 @@ describe("supabase security hardening", () => {
   });
 
   it("does not leave security definer helpers callable via exposed rpc roles", () => {
-    for (const helper of definerHelpers) {
+    for (const helper of exposedDefinerHelpers) {
       expect(helper.sql).toContain(`revoke execute on function ${helper.signature} from public;`);
       expect(helper.sql).toContain(`revoke execute on function ${helper.signature} from anon;`);
       expect(helper.sql).toContain(`revoke execute on function ${helper.signature} from authenticated;`);
     }
   });
 
+  it("keeps rls helper functions private but executable by policy callers", () => {
+    expect(policiesSql).toContain("grant usage on schema private to anon, authenticated;");
+    expect(athenaAdminSql).toContain("grant usage on schema private to anon, authenticated;");
+
+    for (const helper of privateRlsHelpers) {
+      expect(helper.sql).toContain(`create or replace function private.${helper.name}`);
+      expect(helper.sql).toContain(`revoke execute on function ${helper.signature} from public;`);
+      expect(helper.sql).toContain(`grant execute on function ${helper.signature} to anon, authenticated;`);
+    }
+
+    expect(policiesSql).not.toContain("create or replace function public.is_org_member");
+    expect(athenaAdminSql).not.toContain("create or replace function public.is_active_admin_user");
+    expect(athenaAdminSql).not.toContain("create or replace function public.is_client_owner");
+    expect(athenaAdminSql).not.toContain("create or replace function public.is_operator_owner");
+    expect(athenaAdminSql).not.toContain("create or replace function public.is_assignment_client_owner");
+    expect(athenaAdminSql).not.toContain("create or replace function public.is_assignment_operator");
+  });
+
   it("does not use an always-true organization insert policy", () => {
     expect(policiesSql).toContain('create policy "organizations_insert_owner"');
     expect(policiesSql).toContain("with check (auth.uid() is not null);");
     expect(policiesSql).not.toContain("with check (true);");
+  });
+
+  it("lets public job and event organizations resolve in embedded queries", () => {
+    expect(policiesSql).toContain('create policy "organizations_select_members"');
+    expect(policiesSql).toContain("j.status in ('open', 'closed')");
+    expect(policiesSql).toContain("e.status in ('published', 'completed')");
+  });
+
+  it("ships a complete idempotent migration for staff engagement tables", () => {
+    for (const tableName of staffEngagementTables) {
+      expect(completePlatformMigrationSql).toContain(`create table if not exists public.${tableName}`);
+      expect(completePlatformMigrationSql).toContain(`alter table if exists public.${tableName} enable row level security;`);
+    }
+
+    expect(completePlatformMigrationSql).toContain("notify pgrst, 'reload schema';");
+    expect(completePlatformMigrationSql).toContain('create policy "organizations_select_members"');
   });
 });

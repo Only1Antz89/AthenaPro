@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getSwipeDecision } from "@/features/staff/mobile-social-job-feed";
 import { buildStaffJobsBoardItems, filterJobs } from "@/lib/domain/jobs-board";
 import type { EnrichedJob } from "@/types/domain";
 
@@ -49,6 +50,14 @@ function makeJob(id: string, createdAt: string): EnrichedJob {
 }
 
 describe("jobs board helpers", () => {
+  it("only treats decisive horizontal movement as a swipe", () => {
+    expect(getSwipeDecision(130, 20)).toBe("right");
+    expect(getSwipeDecision(-140, 22)).toBe("left");
+    expect(getSwipeDecision(90, 5)).toBeNull();
+    expect(getSwipeDecision(130, 120)).toBeNull();
+    expect(getSwipeDecision(24, 150)).toBeNull();
+  });
+
   it("falls back to applications when views are zero", () => {
     const items = buildStaffJobsBoardItems([
       {

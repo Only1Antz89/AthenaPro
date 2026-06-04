@@ -30,14 +30,14 @@ export function PasswordField({
           type={visible ? "text" : "password"}
           value={value}
           className={cn(
-            "h-12 w-full rounded-[18px] border border-line/70 bg-surfaceRaised/75 px-4 pr-12 text-sm text-ink outline-none transition placeholder:text-slate/70 focus:border-accent focus:ring-4 focus:ring-accent/10",
+            "h-12 w-full min-w-0 max-w-full rounded-[18px] border border-line/70 bg-surfaceRaised/75 px-4 pr-12 text-sm text-ink outline-none transition placeholder:text-slate/70 focus:border-accent focus:ring-4 focus:ring-accent/10",
             className
           )}
         />
         <button
           type="button"
           onClick={() => setVisible((current) => !current)}
-          className="absolute right-3 top-1/2 inline-flex -translate-y-1/2 items-center justify-center rounded-full p-1 text-slate transition hover:text-ink"
+          className="absolute right-1 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full text-slate transition hover:text-ink"
           aria-label={visible ? "Hide password" : "Show password"}
         >
           {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

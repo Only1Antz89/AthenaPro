@@ -186,11 +186,11 @@ export function SignupForm() {
       <section
         className={
           role === "staff"
-            ? "min-h-[calc(100svh-72px)] bg-[radial-gradient(circle_at_15%_12%,rgba(190,242,100,0.18),transparent_0_22%),linear-gradient(180deg,#050607,#0b1017)] px-4 py-8 sm:min-h-[calc(100svh-80px)] sm:px-6 sm:py-10"
+            ? "min-h-[calc(100svh-72px)] bg-[radial-gradient(circle_at_15%_12%,rgba(190,242,100,0.18),transparent_0_22%),linear-gradient(180deg,#050607,#0b1017)] px-4 py-6 sm:min-h-[calc(100svh-80px)] sm:px-6 sm:py-10"
             : "flex min-h-[calc(100svh-72px)] items-center justify-center px-4 py-8 sm:min-h-[calc(100svh-80px)] sm:px-6 sm:py-12"
         }
       >
-        <Card className={role === "staff" ? "mx-auto w-full max-w-7xl overflow-hidden rounded-none border-white/12 bg-[#071018]/95 p-0 shadow-[0_34px_120px_rgba(0,0,0,0.55)] lg:grid lg:grid-cols-[1.05fr_1fr]" : "w-full max-w-5xl"}>
+        <Card className={role === "staff" ? "mx-auto w-full max-w-7xl overflow-hidden rounded-[24px] border-white/12 bg-[#071018]/95 p-0 shadow-[0_34px_120px_rgba(0,0,0,0.55)] sm:rounded-[28px] lg:grid lg:grid-cols-[1.05fr_1fr]" : "w-full max-w-5xl"}>
             {role === "staff" ? (
               <div className="relative hidden min-h-[760px] overflow-hidden border-r border-white/12 lg:block">
                 <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.78),rgba(0,0,0,0.24)),url('https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1500&q=80')] bg-cover bg-center" />
@@ -233,12 +233,12 @@ export function SignupForm() {
                 </div>
               </div>
             ) : null}
-            <div className={role === "staff" ? "p-6 sm:p-8 lg:p-12" : ""}>
+            <div className={role === "staff" ? "p-4 sm:p-8 lg:p-12" : ""}>
           {role === "staff" ? (
-            <div className="mb-7 overflow-hidden rounded-lg border border-white/12 lg:hidden">
-              <div className="min-h-[250px] bg-[linear-gradient(180deg,rgba(0,0,0,0.1),rgba(0,0,0,0.72)),url('https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1100&q=80')] bg-cover bg-center p-6">
+            <div className="mb-6 overflow-hidden rounded-[18px] border border-white/12 lg:hidden">
+              <div className="min-h-[180px] bg-[linear-gradient(180deg,rgba(0,0,0,0.08),rgba(0,0,0,0.78)),url('https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1100&q=80')] bg-cover bg-center p-5">
                 <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-lime-300">Live events. Real people.</p>
-                <h2 className="mt-20 max-w-xs text-4xl font-semibold leading-tight text-white">
+                <h2 className="mt-12 max-w-xs text-3xl font-semibold leading-tight text-white">
                   Your next role <span className="text-lime-300">starts here.</span>
                 </h2>
               </div>
@@ -252,15 +252,24 @@ export function SignupForm() {
               ? "Company accounts post jobs, manage applications, message field team, and track event delivery."
               : <>Create your profile to <span className="text-lime-300">apply for roles</span> and start working events.</>}
           </p>
+          {role === "staff" ? (
+            <div className="mt-5 grid grid-cols-5 gap-2 text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-white/58 lg:hidden">
+              {["Account", "Profile", "Skills", "Time", "Go"].map((step, index) => (
+                <span key={step} className="rounded-full border border-white/10 bg-white/[0.03] px-2 py-2">
+                  {index + 1}. {step}
+                </span>
+              ))}
+            </div>
+          ) : null}
           <div className="mt-6 grid overflow-hidden rounded-lg border border-white/10 sm:grid-cols-2">
             <Link href="/auth/signup?type=field-team">
-              <Button type="button" variant="secondary" className={`w-full rounded-none border-0 py-4 ${role === "staff" ? "bg-white/[0.03] text-white ring-0 shadow-[inset_0_-2px_0_#bef264]" : ""}`}>
+              <Button type="button" variant="secondary" className={`min-h-12 w-full rounded-none border-0 py-4 ${role === "staff" ? "bg-white/[0.03] text-white ring-0 shadow-[inset_0_-2px_0_#bef264]" : ""}`}>
                 <UserRound className="mr-2 h-4 w-4" />
                 Field-team account
               </Button>
             </Link>
             <Link href="/auth/signup?type=company">
-              <Button type="button" variant="secondary" className={`w-full rounded-none border-0 py-4 ${role === "organiser" ? "bg-white/[0.03] text-white ring-0 shadow-[inset_0_-2px_0_#fb7185]" : ""}`}>
+              <Button type="button" variant="secondary" className={`min-h-12 w-full rounded-none border-0 py-4 ${role === "organiser" ? "bg-white/[0.03] text-white ring-0 shadow-[inset_0_-2px_0_#fb7185]" : ""}`}>
                 <Building2 className="mr-2 h-4 w-4" />
                 Company account
               </Button>
@@ -337,6 +346,8 @@ export function SignupForm() {
               }
             }}
           >
+            <div className="rounded-[22px] border border-white/10 bg-white/[0.03] p-4 sm:p-5">
+              <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-lime-300">1. Account</p>
             <div className="grid items-start gap-5 lg:grid-cols-2">
               <Field label={requiredLabel("Full name")}>
                 <Input value={form.fullName} onChange={(event) => update("fullName", event.target.value)} />
@@ -361,12 +372,15 @@ export function SignupForm() {
                 <p className="text-xs text-slate/85">{PASSWORD_HINT}</p>
               </div>
             </div>
+            </div>
 
             {role === "organiser" ? (
               <Field label={requiredLabel("Company name")}>
                 <Input value={form.companyName} onChange={(event) => update("companyName", event.target.value)} />
               </Field>
             ) : (
+              <div className="rounded-[22px] border border-white/10 bg-white/[0.03] p-4 sm:p-5">
+                <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-lime-300">2. Profile</p>
               <div className="grid gap-5 md:grid-cols-2">
                 <Field label={requiredLabel("Phone number")}>
                   <Input value={form.phone} onChange={(event) => update("phone", event.target.value)} />
@@ -392,13 +406,14 @@ export function SignupForm() {
                   <Textarea value={form.bio} onChange={(event) => update("bio", event.target.value)} />
                 </Field>
                 <div className="md:col-span-2">
+                  <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-lime-300">3. Disciplines</p>
                   <Field
                     label={requiredLabel("Disciplines")}
                     hint="Select every field discipline you want surfaced in matching."
                   >
-                    <div className="grid gap-3 rounded-[18px] border border-white/[0.08] bg-white/[0.02] p-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-3 rounded-[18px] border border-white/[0.08] bg-black/20 p-4 sm:grid-cols-2 lg:grid-cols-3">
                       {STAFF_DISCIPLINE_OPTIONS.map((discipline) => (
-                        <label key={discipline} className="flex items-center gap-3 text-sm text-slate">
+                        <label key={discipline} className="flex min-h-11 items-center gap-3 text-sm text-slate">
                           <Checkbox
                             checked={selectedDisciplines.includes(discipline)}
                             onChange={(event) => toggleDiscipline(discipline, event.target.checked)}
@@ -410,12 +425,13 @@ export function SignupForm() {
                   </Field>
                 </div>
                 <div className="md:col-span-2">
+                  <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-lime-300">4. Availability</p>
                   <Field
                     label={requiredLabel("Availability")}
                     hint="Choose your working days, then set shared hours or day-specific hours."
                   >
-                    <div className="space-y-4 rounded-[18px] border border-white/[0.08] bg-white/[0.02] p-4">
-                      <label className="flex items-center gap-3 text-sm text-slate">
+                    <div className="space-y-4 rounded-[18px] border border-white/[0.08] bg-black/20 p-4">
+                      <label className="flex min-h-11 items-center gap-3 text-sm text-slate">
                         <Checkbox
                           checked={allAvailabilityDaysSelected}
                           onChange={(event) => toggleAllAvailabilityDays(event.target.checked)}
@@ -427,7 +443,7 @@ export function SignupForm() {
                         {availabilityDays.map((day) => (
                           <label
                             key={day.key}
-                            className={`flex items-center gap-3 rounded-[16px] border px-3 py-3 text-sm transition ${
+                            className={`flex min-h-12 items-center gap-3 rounded-[16px] border px-3 py-3 text-sm transition ${
                               day.selected
                                 ? "border-white/16 bg-white/[0.05] text-ink"
                                 : "border-white/[0.08] bg-transparent text-slate"
@@ -446,7 +462,7 @@ export function SignupForm() {
                         ))}
                       </div>
 
-                      <label className="flex items-center gap-3 text-sm text-slate">
+                      <label className="flex min-h-11 items-center gap-3 text-sm text-slate">
                         <Checkbox
                           checked={useSharedHours}
                           onChange={(event) => setUseSharedHours(event.target.checked)}
@@ -507,9 +523,10 @@ export function SignupForm() {
                   </Field>
                 </div>
               </div>
+              </div>
             )}
 
-            <label className="flex items-start gap-3 rounded-[18px] border border-white/[0.08] bg-white/[0.02] px-4 py-4">
+            <label className="flex min-h-12 items-start gap-3 rounded-[18px] border border-white/[0.08] bg-white/[0.03] px-4 py-4">
               <Checkbox
                 checked={form.newsletterConsent}
                 onChange={(event) =>
@@ -523,7 +540,7 @@ export function SignupForm() {
 
             <Button
               type="submit"
-              className={role === "staff" ? "w-full bg-lime-300 text-black hover:bg-lime-200" : "w-full"}
+              className={role === "staff" ? "min-h-12 w-full bg-lime-300 text-black hover:bg-lime-200" : "min-h-12 w-full"}
               disabled={submitting}
             >
               {submitting ? "Creating access..." : role === "organiser" ? "Request access" : "Create field-team profile"}

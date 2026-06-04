@@ -136,6 +136,7 @@ export function StaffJobsBoard() {
         eyebrow="Field team workspace"
         title="Jobs"
         description="Track what is moving now, switch between trending and newly posted roles, and keep your current applications in view."
+        hideIntroOnMobile
       >
         <MobileSocialJobFeed board={board.data} items={items} onRefresh={board.refresh} />
 

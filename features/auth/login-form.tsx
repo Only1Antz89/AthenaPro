@@ -227,8 +227,8 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(217,255,47,0.18),transparent_0_26%),radial-gradient(circle_at_82%_18%,rgba(255,91,127,0.18),transparent_0_24%),radial-gradient(circle_at_70%_84%,rgba(37,244,238,0.13),transparent_0_28%)]" />
         </div>
 
-        <div className="relative z-10 mx-auto grid min-h-[calc(100svh-72px)] max-w-[1500px] gap-8 px-4 py-8 sm:px-6 sm:py-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(420px,0.82fr)] lg:items-stretch lg:px-8">
-          <div className="grid overflow-hidden rounded-[34px] border border-white/10 bg-black/52 shadow-[0_28px_100px_rgba(0,0,0,0.5)] backdrop-blur-xl lg:grid-rows-[1fr_auto]">
+        <div className="relative z-10 mx-auto grid min-h-[calc(100svh-72px)] max-w-[1500px] gap-6 px-4 py-6 sm:px-6 sm:py-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(420px,0.82fr)] lg:items-stretch lg:gap-8 lg:px-8">
+          <div className="order-2 hidden overflow-hidden rounded-[34px] border border-white/10 bg-black/52 shadow-[0_28px_100px_rgba(0,0,0,0.5)] backdrop-blur-xl lg:grid lg:grid-rows-[1fr_auto]">
             <div className="relative min-h-[420px] p-6 sm:p-8 lg:min-h-0">
               <div className="absolute inset-0">
                 <img src={SUPPORT_IMAGE} alt="Festival crowd and event lights." className="h-full w-full object-cover opacity-78" />
@@ -282,16 +282,16 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
             </div>
           </div>
 
-          <div className="rounded-[34px] border border-white/10 bg-[#090d10]/88 p-5 shadow-[0_28px_100px_rgba(0,0,0,0.48)] backdrop-blur-2xl sm:p-7 lg:p-8">
+          <div className="order-1 rounded-[24px] border border-white/10 bg-[#090d10]/92 p-4 shadow-[0_28px_100px_rgba(0,0,0,0.48)] backdrop-blur-2xl sm:rounded-[34px] sm:p-7 lg:order-2 lg:p-8">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-lime-300">Platform Access</p>
-              <h2 className="mt-3 text-balance font-display text-4xl font-semibold tracking-[-0.06em] text-white sm:text-5xl">
+              <h2 className="mt-3 text-balance font-display text-3xl font-semibold tracking-[-0.04em] text-white sm:text-5xl sm:tracking-[-0.06em]">
                 {activeAccess.label} sign in
               </h2>
               <p className="mt-3 text-sm leading-7 text-white/64 sm:text-base">{activeAccess.headline}</p>
             </div>
 
-            <div className="mt-7 grid grid-cols-2 gap-2 rounded-[22px] border border-white/10 bg-white/[0.04] p-1.5">
+            <div className="mt-6 grid grid-cols-2 gap-2 rounded-[18px] border border-white/10 bg-white/[0.04] p-1.5 sm:mt-7 sm:rounded-[22px]">
               {(Object.keys(ACCESS_OPTIONS) as AccessMode[]).map((mode) => {
                 const option = ACCESS_OPTIONS[mode];
                 const Icon = option.icon;
@@ -302,7 +302,7 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
                     key={mode}
                     type="button"
                     onClick={() => setAccessMode(mode)}
-                    className={`flex min-h-[76px] items-center gap-3 rounded-[18px] px-4 py-3 text-left transition ${
+                    className={`flex min-h-[64px] items-center gap-2 rounded-[14px] px-3 py-3 text-left transition sm:min-h-[76px] sm:gap-3 sm:rounded-[18px] sm:px-4 ${
                       isActive
                         ? "bg-lime-300 text-black shadow-[0_0_28px_rgba(217,255,47,0.22)]"
                         : "text-white/70 hover:bg-white/[0.06] hover:text-white"
@@ -320,7 +320,7 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
               })}
             </div>
 
-            <form className="mt-7 space-y-5" onSubmit={handleLogin}>
+            <form className="mt-6 space-y-5 sm:mt-7" onSubmit={handleLogin}>
               <Field label="Email address">
                 <Input
                   type="email"
@@ -337,29 +337,29 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
                 />
               </Field>
               <div className="flex justify-end">
-                <Link href="/auth/forgot-password" className="text-sm text-white/58 transition hover:text-white">
+                <Link href="/auth/forgot-password" className="inline-flex min-h-11 items-center text-sm text-white/58 transition hover:text-white">
                   Forgot password?
                 </Link>
               </div>
-              <Button type="submit" className="w-full gap-2 bg-lime-300 py-3.5 text-black hover:bg-lime-200" disabled={submitting}>
+              <Button type="submit" className="min-h-12 w-full gap-2 bg-lime-300 py-3.5 text-black hover:bg-lime-200" disabled={submitting}>
                 {submitting ? "Opening workspace..." : `Sign in as ${activeAccess.label.toLowerCase()}`}
                 <ActiveIcon className="h-4 w-4" />
               </Button>
               <p className="text-center text-sm text-white/58">
                 New here?{" "}
-                <Link href={activeAccess.signupHref} className="font-semibold text-cyan-300 transition hover:text-cyan-200">
+                <Link href={activeAccess.signupHref} className="inline-flex min-h-11 items-center font-semibold text-cyan-300 transition hover:text-cyan-200">
                   {activeAccess.signupLabel}
                 </Link>
               </p>
             </form>
 
-            <div className="mt-8 rounded-[26px] border border-white/10 bg-white/[0.04] p-4">
+            <div className="mt-7 rounded-[22px] border border-white/10 bg-white/[0.04] p-4 sm:mt-8 sm:rounded-[26px]">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/42">Live job preview</p>
                   <p className="mt-1 text-lg font-semibold text-white">Find roles before signing in</p>
                 </div>
-                <Link href="/jobs" className="shrink-0 text-sm font-semibold text-lime-300 hover:text-lime-200">
+                <Link href="/jobs" className="inline-flex min-h-11 shrink-0 items-center text-sm font-semibold text-lime-300 hover:text-lime-200">
                   Open board
                 </Link>
               </div>
@@ -387,7 +387,7 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
               </div>
             </div>
 
-            <div className="mt-5 overflow-hidden rounded-[24px] border border-white/10">
+            <div className="mt-5 hidden overflow-hidden rounded-[24px] border border-white/10 sm:block">
               <img src={DETAIL_IMAGE} alt="Festival stage lights at night." className="h-32 w-full object-cover opacity-82" />
             </div>
           </div>

@@ -8,7 +8,7 @@ export function Field({
   children: React.ReactNode;
 }) {
   return (
-    <label className="block space-y-2">
+    <label className="block w-full min-w-0 max-w-full space-y-2">
       <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate">{label}</span>
       {children}
       {hint ? <span className="block text-xs text-slate/85">{hint}</span> : null}
