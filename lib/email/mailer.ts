@@ -30,6 +30,7 @@ export async function sendMail(input: {
   subject: string;
   html: string;
   text: string;
+  replyTo?: string;
   headers?: Record<string, string>;
   messageId?: string;
 }) {
@@ -48,6 +49,7 @@ export async function sendMail(input: {
     subject: input.subject,
     html: input.html,
     text: input.text,
+    replyTo: input.replyTo,
     headers: input.headers,
     messageId: input.messageId
   });

@@ -33,9 +33,9 @@ const config: Config = {
       },
       backgroundImage: {
         "hero-grid":
-          "radial-gradient(circle at 15% 18%, rgba(192,192,192,0.18), transparent 0 26%), radial-gradient(circle at 82% 0%, rgba(112,128,144,0.22), transparent 0 25%), linear-gradient(180deg, #1a1a1a 0%, #131517 48%, #0d0f11 100%)",
+          "radial-gradient(circle at 15% 18%, rgba(190,242,100,0.16), transparent 0 26%), radial-gradient(circle at 82% 0%, rgba(190,242,100,0.1), transparent 0 25%), linear-gradient(180deg, #1a1a1a 0%, #131517 48%, #0d0f11 100%)",
         "steel-noise":
-          "linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0)), linear-gradient(180deg, rgba(112,128,144,0.16), rgba(0,0,0,0))"
+          "linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0)), linear-gradient(180deg, rgba(190,242,100,0.1), rgba(0,0,0,0))"
       }
     }
   },

@@ -4,10 +4,11 @@ import { getAdminAssignmentById } from "@/lib/queries/assignments";
 
 export async function GET(
   _request: Request,
-  { params }: { params: { assignmentId: string } }
+  { params }: { params: Promise<{ assignmentId: string }> }
 ) {
   await requireAdmin();
-  const assignment = await getAdminAssignmentById(params.assignmentId);
+  const { assignmentId } = await params;
+  const assignment = await getAdminAssignmentById(assignmentId);
 
   if (!assignment) {
     return NextResponse.json({ message: "Assignment not found." }, { status: 404 });

@@ -12,10 +12,11 @@ export const dynamic = "force-dynamic";
 export default async function CampaignDetailPage({
   params
 }: {
-  params: { campaignId: string };
+  params: Promise<{ campaignId: string }>;
 }) {
+  const { campaignId } = await params;
   const [campaign, templates, deliveries] = await Promise.all([
-    getAdminCampaignById(params.campaignId),
+    getAdminCampaignById(campaignId),
     getAdminEmailTemplates(),
     getAdminEmailDeliveries()
   ]);

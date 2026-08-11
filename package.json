@@ -2,13 +2,16 @@
   "name": "staffbook-demo",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "lint": "eslint . --max-warnings=0",
+    "test": "vitest run --configLoader runner",
+    "test:watch": "vitest --configLoader runner",
     "typecheck": "tsc --noEmit --incremental false",
     "supabase:health": "node scripts/check-supabase-schema.mjs"
   },
@@ -20,8 +23,8 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.503.0",
-    "next": "^14.2.25",
-    "nodemailer": "^8.0.4",
+    "next": "^16.3.0",
+    "nodemailer": "^9.0.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "sonner": "^2.0.3",
@@ -34,17 +37,21 @@
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "^22.14.1",
-    "@types/nodemailer": "^8.0.0",
+    "@types/nodemailer": "^8.0.1",
     "@types/react": "^18.3.20",
     "@types/react-dom": "^18.3.6",
-    "@vitejs/plugin-react": "^4.4.1",
+    "@vitejs/plugin-react": "^6.0.5",
     "autoprefixer": "^10.4.21",
-    "eslint": "^8.57.1",
-    "eslint-config-next": "^14.2.25",
+    "eslint": "^9.39.2",
+    "eslint-config-next": "^16.3.0",
     "jsdom": "^26.1.0",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3",
-    "vitest": "^3.1.2"
+    "vite": "^8.2.1",
+    "vitest": "^4.1.10"
+  },
+  "overrides": {
+    "ws": "^8.21.3"
   }
 }

@@ -6,21 +6,23 @@ import { importGoogleDoc } from "@/lib/services/admin-communications";
 
 export async function POST(
   _request: Request,
-  { params }: { params: { fileId: string } }
+  { params }: { params: Promise<{ fileId: string }> }
 ) {
   await requireAdmin();
-  const accessToken = cookies().get("athena_google_access_token")?.value;
+  const { fileId } = await params;
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("athena_google_access_token")?.value;
 
   if (!accessToken) {
     return NextResponse.json({ error: "Google is not connected." }, { status: 401 });
   }
 
   try {
-    const payload = await importGoogleDoc(accessToken, params.fileId);
+    const payload = await importGoogleDoc(accessToken, fileId);
     return NextResponse.json(payload);
   } catch (error) {
     if (error instanceof AppError && (error.status === 401 || error.status === 403)) {
-      cookies().delete("athena_google_access_token");
+      cookieStore.delete("athena_google_access_token");
       return NextResponse.json({ error: "Google connection expired." }, { status: 401 });
     }
 

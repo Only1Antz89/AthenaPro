@@ -8,7 +8,7 @@ export async function POST() {
     return NextResponse.json({ ok: true });
   }
 
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const {
     data: { user }
   } = await supabase.auth.getUser();

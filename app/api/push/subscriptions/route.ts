@@ -13,7 +13,7 @@ const pushSubscriptionSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const {
       data: { user }
     } = await supabase.auth.getUser();
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const {
       data: { user }
     } = await supabase.auth.getUser();

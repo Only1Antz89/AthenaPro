@@ -11,7 +11,7 @@ import { updateMarketingPreferencesSchema } from "@/lib/validation/schemas";
 export async function POST(request: Request) {
   const body = await request.json();
   const payload = updateMarketingPreferencesSchema.parse(body);
-  const serverSupabase = createServerSupabaseClient();
+  const serverSupabase = await createServerSupabaseClient();
   const {
     data: { user }
   } = await serverSupabase.auth.getUser();

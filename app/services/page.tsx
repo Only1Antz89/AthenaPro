@@ -40,7 +40,7 @@ export default function ServicesPage() {
         <PageContainer className="relative z-10 py-12 sm:py-16 md:py-24">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,0.82fr)_minmax(320px,0.94fr)] lg:items-end">
             <div className="scroll-reveal max-w-3xl">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate">Services</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-lime-300">For employers</p>
               <h1 className="text-balance mt-5 font-display text-4xl font-semibold tracking-[-0.07em] text-ink sm:text-5xl md:text-7xl">
                 Technical authority at the gate. Disciplined execution on the ground.
               </h1>
@@ -159,12 +159,12 @@ export default function ServicesPage() {
                 </p>
               </div>
               <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                <Link href="/contact">
-                  <Button className="w-full gap-2 sm:w-auto">
-                    Start an enquiry <ArrowRight className="h-4 w-4" />
+                <Link href="/contact" className="block w-full sm:w-auto">
+                  <Button className="w-full gap-2 bg-lime-300 text-black hover:bg-lime-200 sm:w-auto">
+                    Hire event staff <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
-                <Link href="/about">
+                <Link href="/about" className="block w-full sm:w-auto">
                   <Button variant="secondary" className="w-full sm:w-auto">
                     About Athena Pro
                   </Button>

@@ -14,9 +14,10 @@ const ACTIVE_ASSIGNMENT_STATUSES = new Set(["open", "partially_filled", "filled"
 export default async function ClientWorkspacePreviewPage({
   params
 }: {
-  params: { clientId: string };
+  params: Promise<{ clientId: string }>;
 }) {
-  const client = await getAdminClientById(params.clientId);
+  const { clientId } = await params;
+  const client = await getAdminClientById(clientId);
 
   if (!client) {
     notFound();

@@ -55,6 +55,7 @@ SMTP2GO_SMTP_USER=your-smtp2go-user
 SMTP2GO_SMTP_PASSWORD=your-smtp2go-password
 SMTP2GO_FROM_EMAIL=ops@your-domain.com
 SMTP2GO_FROM_NAME=Athena Pro
+CONTACT_INBOX_EMAIL=enquiries@your-domain.com
 SMTP2GO_WEBHOOK_AUTH=Bearer your-smtp2go-webhook-secret
 ATHENA_REGISTERED_OFFICE=Your registered office postal address
 ATHENA_COMPANY_REGISTRATION=Your company registration number
@@ -66,6 +67,8 @@ GOOGLE_REDIRECT_URI=https://your-domain.com/api/admin/google/oauth/callback
 `SUPABASE_SERVICE_ROLE_KEY` is only for server-side/public service usage and setup tasks. Do not expose it in client code.
 
 ## Local Development
+
+Node.js 20.9 or newer is required.
 
 ```bash
 npm install
@@ -96,4 +99,4 @@ Run the SQL in this order:
 
 - The app keeps provider and service boundaries so the demo/runtime split remains intact.
 - Persisted role enums remain `organiser` and `staff` internally for compatibility, while the UI is presented as client and field team.
-- The current contact form is validated UI only and does not yet route enquiries to an external destination.
+- Contact enquiries are delivered through SMTP2GO to `CONTACT_INBOX_EMAIL` (falling back to the configured sender address).

@@ -8,9 +8,10 @@ import { getAdminOperatorById } from "@/lib/queries/operators";
 export default async function OperatorDetailPage({
   params
 }: {
-  params: { operatorId: string };
+  params: Promise<{ operatorId: string }>;
 }) {
-  const operator = await getAdminOperatorById(params.operatorId);
+  const { operatorId } = await params;
+  const operator = await getAdminOperatorById(operatorId);
 
   if (!operator) {
     notFound();

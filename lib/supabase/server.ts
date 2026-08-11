@@ -8,12 +8,12 @@ type CookieWrite = {
   options?: Record<string, unknown>;
 };
 
-export function createServerSupabaseClient() {
+export async function createServerSupabaseClient() {
   if (!env.hasSupabase) {
     throw new Error("Supabase server configuration is missing.");
   }
 
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
 
   return createServerClient(env.supabaseUrl, env.supabaseAnonKey, {
     cookies: {

@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import Image from "next/image";
+import { ArrowRight, Building2, UserRound } from "lucide-react";
 import { PageContainer } from "@/components/layout/page-container";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
@@ -25,10 +26,13 @@ export function LandingPage({ data }: { data: LandingHighlights }) {
 
       <section className="relative isolate overflow-hidden bg-black md:min-h-[calc(100svh-80px)]">
         <div className="absolute inset-0">
-          <img
+          <Image
             src={HOME_IMAGES.hero}
             alt="Athena Pro team coordinating live event operations."
-            className="h-full w-full object-cover opacity-62 md:opacity-55"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover opacity-62 md:opacity-55"
           />
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.9)_0%,rgba(0,0,0,0.72)_44%,rgba(0,0,0,0.95)_100%)] md:bg-[linear-gradient(90deg,rgba(0,0,0,0.96)_0%,rgba(0,0,0,0.72)_46%,rgba(0,0,0,0.36)_100%)]" />
           <div className="absolute inset-0 hidden bg-[radial-gradient(circle_at_18%_18%,rgba(190,242,100,0.18),transparent_0_26%),radial-gradient(circle_at_80%_20%,rgba(236,72,153,0.22),transparent_0_24%)] md:block" />
@@ -62,10 +66,12 @@ export function LandingPage({ data }: { data: LandingHighlights }) {
 
             <div className="scroll-reveal-scale grid gap-4 lg:justify-items-end">
               <div className="relative h-[240px] w-full overflow-hidden rounded-[24px] border border-line/60 bg-black/30 shadow-float sm:h-[360px] sm:rounded-[36px] lg:h-[420px] lg:max-w-[470px]">
-                <img
+                <Image
                   src={HOME_IMAGES.support}
                   alt="Festival crowd with stage lights."
-                  className="h-full w-full object-cover"
+                  fill
+                  sizes="(min-width: 1024px) 470px, 100vw"
+                  className="object-cover"
                 />
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,18,19,0.04),rgba(17,18,19,0.72))]" />
                 <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
@@ -103,6 +109,31 @@ export function LandingPage({ data }: { data: LandingHighlights }) {
         </PageContainer>
       </section>
 
+      <section className="border-b border-line/60 py-12 sm:py-16">
+        <PageContainer>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Link href="/staff" className="group rounded-[30px] border border-lime-300/25 bg-lime-300/[0.08] p-6 transition hover:-translate-y-1 hover:border-lime-300/50 sm:p-8">
+              <div className="flex items-start justify-between gap-5">
+                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-lime-300 text-black"><UserRound className="h-5 w-5" /></span>
+                <ArrowRight className="h-5 w-5 text-lime-300 transition group-hover:translate-x-1" />
+              </div>
+              <p className="mt-8 text-[11px] font-bold uppercase tracking-[0.22em] text-lime-300">I want to work events</p>
+              <h2 className="mt-3 font-display text-3xl font-semibold tracking-[-0.05em] text-white">Find roles and build your reputation.</h2>
+              <p className="mt-3 max-w-xl text-sm leading-7 text-white/65">Browse live jobs, apply quickly, manage availability, and keep every booking in one place.</p>
+            </Link>
+            <Link href="/services" className="group rounded-[30px] border border-white/12 bg-white/[0.04] p-6 transition hover:-translate-y-1 hover:border-lime-300/35 sm:p-8">
+              <div className="flex items-start justify-between gap-5">
+                <span className="grid h-12 w-12 place-items-center rounded-2xl border border-white/12 bg-black/30 text-lime-300"><Building2 className="h-5 w-5" /></span>
+                <ArrowRight className="h-5 w-5 text-white/60 transition group-hover:translate-x-1 group-hover:text-lime-300" />
+              </div>
+              <p className="mt-8 text-[11px] font-bold uppercase tracking-[0.22em] text-white/55">I need an event team</p>
+              <h2 className="mt-3 font-display text-3xl font-semibold tracking-[-0.05em] text-white">Hire field teams with operational control.</h2>
+              <p className="mt-3 max-w-xl text-sm leading-7 text-white/65">Plan staffing, ticketing support, and onsite delivery with one accountable partner.</p>
+            </Link>
+          </div>
+        </PageContainer>
+      </section>
+
       <section className="py-20 md:py-28">
         <PageContainer className="grid gap-8 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1fr)] lg:items-start lg:gap-10">
           <div className="scroll-reveal section-frame pl-4 sm:pl-6">
@@ -118,9 +149,12 @@ export function LandingPage({ data }: { data: LandingHighlights }) {
                 operational tools behind the profile button.
             </p>
             <div className="scroll-reveal-scale relative overflow-hidden rounded-[36px] border border-line/60">
-              <img
+              <Image
                 src={HOME_IMAGES.detail}
                 alt="Open air festival stage and crowd."
+                width={1600}
+                height={840}
+                sizes="(min-width: 1024px) 65vw, 100vw"
                 className="h-[280px] w-full object-cover sm:h-[360px] md:h-[420px]"
               />
               <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(17,18,19,0.15),rgba(17,18,19,0.75))]" />

@@ -11,7 +11,7 @@ const buttonVariants = cva(
           "bg-mist px-5 py-3 text-canvas shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] hover:opacity-90",
         secondary:
           "bg-transparent px-5 py-3 text-ink ring-1 ring-line/70 hover:bg-accentSoft/70",
-        accent: "bg-accent px-5 py-3 text-ink hover:bg-accent/88",
+        accent: "bg-accent px-5 py-3 text-canvas hover:bg-accent/88",
         ghost: "px-4 py-2 text-slate hover:bg-accentSoft/70 hover:text-ink"
       }
     },

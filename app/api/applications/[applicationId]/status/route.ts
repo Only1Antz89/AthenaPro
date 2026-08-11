@@ -9,11 +9,12 @@ const updateApplicationStatusSchema = z.object({
 
 export async function POST(
   request: Request,
-  { params }: { params: { applicationId: string } }
+  { params }: { params: Promise<{ applicationId: string }> }
 ) {
+  const { applicationId } = await params;
   const body = await request.json();
   const payload = updateApplicationStatusSchema.parse(body);
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const {
     data: { user }
   } = await supabase.auth.getUser();
@@ -31,7 +32,7 @@ export async function POST(
   const { error } = await supabase
     .from("applications")
     .update({ status: payload.status })
-    .eq("id", params.applicationId);
+    .eq("id", applicationId);
 
   if (error) {
     return NextResponse.json({ ok: false, error: error.message }, { status: 400 });
@@ -39,7 +40,7 @@ export async function POST(
 
   if (payload.status === "accepted") {
     try {
-      await sendJobConfirmationEmails({ applicationId: params.applicationId });
+      await sendJobConfirmationEmails({ applicationId });
     } catch (sendError) {
       console.error(sendError);
       return NextResponse.json({
