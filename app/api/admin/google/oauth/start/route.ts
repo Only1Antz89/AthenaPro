@@ -8,7 +8,8 @@ export async function GET(request: Request) {
   const state = crypto.randomUUID();
   const isSecure = new URL(request.url).protocol === "https:";
 
-  cookies().set("athena_google_oauth_state", state, {
+  const cookieStore = await cookies();
+  cookieStore.set("athena_google_oauth_state", state, {
     httpOnly: true,
     sameSite: "lax",
     path: "/",

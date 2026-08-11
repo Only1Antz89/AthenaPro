@@ -4,10 +4,11 @@ import { getAdminOperatorById } from "@/lib/queries/operators";
 
 export async function GET(
   _request: Request,
-  { params }: { params: { operatorId: string } }
+  { params }: { params: Promise<{ operatorId: string }> }
 ) {
   await requireAdmin();
-  const operator = await getAdminOperatorById(params.operatorId);
+  const { operatorId } = await params;
+  const operator = await getAdminOperatorById(operatorId);
 
   if (!operator) {
     return NextResponse.json({ message: "Operator not found." }, { status: 404 });

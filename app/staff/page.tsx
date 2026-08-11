@@ -84,7 +84,7 @@ export default function StaffPage() {
         </div>
 
         <PageContainer className="relative z-10 grid gap-10 py-14 md:py-20 lg:grid-cols-[minmax(0,0.94fr)_minmax(360px,0.76fr)] lg:items-center">
-          <div className="max-w-3xl">
+          <div className="min-w-0 max-w-3xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-lime-300">Live roles. Real events. Your profile hub.</p>
             <h1 className="mt-5 text-balance font-display text-5xl font-semibold tracking-[-0.07em] text-white sm:text-6xl md:text-7xl">
               How Athena Pro works for field team.
@@ -94,12 +94,12 @@ export default function StaffPage() {
               earnings estimates, availability, messages, payments, and security inside your profile button.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <Link href="/auth/login">
+              <Link href="/auth/login" className="block w-full sm:w-auto">
                 <Button variant="accent" className="w-full gap-2 bg-lime-300 px-6 py-3.5 text-black hover:bg-lime-200 sm:w-auto">
                   Platform access <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
-              <Link href="/jobs">
+              <Link href="/jobs" className="block w-full sm:w-auto">
                 <Button variant="secondary" className="w-full border-white/15 bg-white/5 px-6 py-3.5 text-white hover:bg-white/10 sm:w-auto">
                   Find roles
                 </Button>
@@ -107,7 +107,7 @@ export default function StaffPage() {
             </div>
           </div>
 
-          <div className="rounded-[32px] border border-white/10 bg-black/70 p-4 shadow-[0_30px_90px_rgba(0,0,0,0.55)] backdrop-blur-xl sm:p-5">
+          <div className="min-w-0 rounded-[32px] border border-white/10 bg-black/70 p-4 shadow-[0_30px_90px_rgba(0,0,0,0.55)] backdrop-blur-xl sm:p-5">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-lime-300">Today in your feed</p>
@@ -119,7 +119,7 @@ export default function StaffPage() {
             <div className="mt-5 flex gap-3 overflow-hidden">
               {storyCompanies.map((company) => (
                 <div key={company} className="shrink-0 text-center">
-                  <div className="grid h-16 w-16 place-items-center rounded-full bg-[conic-gradient(from_120deg,#d9ff2f,#25f4ee,#ff5b7f,#d9ff2f)] p-[3px]">
+                  <div className="grid h-16 w-16 place-items-center rounded-full bg-[conic-gradient(from_120deg,#bef264,#ffffff,#7aa33a,#bef264)] p-[3px]">
                     <span className="grid h-full w-full place-items-center rounded-full bg-black text-lg font-bold text-lime-300">{company}</span>
                   </div>
                 </div>
@@ -141,11 +141,11 @@ export default function StaffPage() {
             </div>
 
             <div className="mt-5 flex items-end justify-between gap-4 text-sm">
-              <div className="text-rose-300">
+              <div className="text-white/55">
                 <Zap className="mb-1 h-5 w-5" />
                 Swipe left to pass
               </div>
-              <div className="text-center text-pink-300">
+              <div className="text-center text-lime-300">
                 <Heart className="mx-auto mb-1 h-8 w-8" />
                 Double tap to like
               </div>
@@ -221,7 +221,7 @@ export default function StaffPage() {
                 const Icon = item.icon;
                 return (
                   <div key={item.label} className="rounded-[24px] border border-white/10 bg-black/42 p-4">
-                    <Icon className="h-5 w-5 text-cyan-300" />
+                    <Icon className="h-5 w-5 text-lime-300" />
                     <h3 className="mt-3 font-semibold text-white">{item.label}</h3>
                     <p className="mt-2 text-sm leading-6 text-white/58">{item.copy}</p>
                   </div>
@@ -234,7 +234,7 @@ export default function StaffPage() {
 
       <section className="py-16 md:py-24">
         <PageContainer>
-          <div className="rounded-[34px] border border-lime-300/25 bg-[linear-gradient(135deg,rgba(217,255,47,0.16),rgba(37,244,238,0.08),rgba(255,91,127,0.11))] p-6 sm:p-8 md:p-10">
+          <div className="rounded-[34px] border border-lime-300/25 bg-[linear-gradient(135deg,rgba(190,242,100,0.16),rgba(190,242,100,0.06),rgba(255,255,255,0.03))] p-6 sm:p-8 md:p-10">
             <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-lime-300">Ready when you are</p>
@@ -243,12 +243,12 @@ export default function StaffPage() {
                 </h2>
               </div>
               <div className="flex flex-col gap-3 sm:flex-row">
-                <Link href="/auth/login">
+                <Link href="/auth/login" className="block w-full sm:w-auto">
                   <Button variant="accent" className="w-full gap-2 bg-lime-300 px-6 py-3.5 text-black hover:bg-lime-200 sm:w-auto">
                     Platform access <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
-                <Link href="/services">
+                <Link href="/services" className="block w-full sm:w-auto">
                   <Button variant="secondary" className="w-full border-white/15 bg-black/35 px-6 py-3.5 text-white hover:bg-black/50 sm:w-auto">
                     For companies
                   </Button>

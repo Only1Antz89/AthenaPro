@@ -10,9 +10,10 @@ import { formatCurrency, formatDateTime } from "@/lib/utils";
 export default async function AssignmentDetailPage({
   params
 }: {
-  params: { assignmentId: string };
+  params: Promise<{ assignmentId: string }>;
 }) {
-  const assignment = await getAdminAssignmentById(params.assignmentId);
+  const { assignmentId } = await params;
+  const assignment = await getAdminAssignmentById(assignmentId);
 
   if (!assignment) {
     notFound();

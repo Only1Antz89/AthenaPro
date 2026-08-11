@@ -11,11 +11,12 @@ const scheduleSchema = z.object({
 
 export async function POST(
   request: Request,
-  { params }: { params: { campaignId: string } }
+  { params }: { params: Promise<{ campaignId: string }> }
 ) {
   await requireAdmin();
+  const { campaignId } = await params;
   const body = await request.json();
   const payload = scheduleSchema.parse(body);
-  const result = await scheduleCampaign(params.campaignId, payload.scheduledAt);
+  const result = await scheduleCampaign(campaignId, payload.scheduledAt);
   return NextResponse.json(result);
 }

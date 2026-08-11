@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -220,9 +221,9 @@ export function SignupForm() {
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-0 overflow-hidden rounded-lg border border-white/12">
-                    <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=700&q=80" alt="Festival scanner wristband" className="h-40 w-full object-cover" />
-                    <img src="https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=700&q=80" alt="Live stage at night" className="h-40 w-full object-cover" />
-                    <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=700&q=80" alt="Supervisor at a live event" className="h-40 w-full object-cover" />
+                    <Image src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=700&q=80" alt="Festival scanner wristband" width={700} height={320} sizes="33vw" className="h-40 w-full object-cover" />
+                    <Image src="https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=700&q=80" alt="Live stage at night" width={700} height={320} sizes="33vw" className="h-40 w-full object-cover" />
+                    <Image src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=700&q=80" alt="Supervisor at a live event" width={700} height={320} sizes="33vw" className="h-40 w-full object-cover" />
                   </div>
                   <div className="mt-8 flex items-center gap-4 border-t border-white/12 pt-8">
                     <ShieldCheck className="h-10 w-10 text-lime-300" />

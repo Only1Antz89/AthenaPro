@@ -107,6 +107,9 @@ function ProfilePhoto({ name, avatarUrl, className }: { name: string; avatarUrl?
 
   if (avatarUrl) {
     return (
+      // User-provided avatar hosts are not known at build time, so this image
+      // cannot safely use Next's fixed remote-host allowlist.
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={avatarUrl}
         alt=""
@@ -249,7 +252,7 @@ function MessageWorkspace({
     } else {
       setSelectedThreadId("");
     }
-  }, [selectedThread?.id]);
+  }, [selectedThread]);
 
   useEffect(() => {
     setTargetKey(targets[0]?.key ?? "");

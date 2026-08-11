@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
@@ -222,7 +223,14 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
 
       <section className="relative isolate min-h-[calc(100svh-72px)] overflow-hidden border-b border-white/10">
         <div className="absolute inset-0">
-          <img src={HERO_IMAGE} alt="Festival crowd under neon lights." className="h-full w-full object-cover opacity-42" />
+          <Image
+            src={HERO_IMAGE}
+            alt="Festival crowd under neon lights."
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover opacity-42"
+          />
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.95),rgba(5,8,10,0.82)_48%,rgba(0,0,0,0.96))]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(217,255,47,0.18),transparent_0_26%),radial-gradient(circle_at_82%_18%,rgba(255,91,127,0.18),transparent_0_24%),radial-gradient(circle_at_70%_84%,rgba(37,244,238,0.13),transparent_0_28%)]" />
         </div>
@@ -231,7 +239,13 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
           <div className="order-2 hidden overflow-hidden rounded-[34px] border border-white/10 bg-black/52 shadow-[0_28px_100px_rgba(0,0,0,0.5)] backdrop-blur-xl lg:grid lg:grid-rows-[1fr_auto]">
             <div className="relative min-h-[420px] p-6 sm:p-8 lg:min-h-0">
               <div className="absolute inset-0">
-                <img src={SUPPORT_IMAGE} alt="Festival crowd and event lights." className="h-full w-full object-cover opacity-78" />
+                <Image
+                  src={SUPPORT_IMAGE}
+                  alt="Festival crowd and event lights."
+                  fill
+                  sizes="(min-width: 1024px) 50vw, 100vw"
+                  className="object-cover opacity-78"
+                />
                 <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.82),rgba(0,0,0,0.24)_62%,rgba(0,0,0,0.66))]" />
               </div>
               <div className="relative max-w-xl">
@@ -255,7 +269,7 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
                   const Icon = item.icon;
                   return (
                     <div key={item.label} className="rounded-[22px] border border-white/10 bg-black/52 p-4 backdrop-blur">
-                      <Icon className="h-5 w-5 text-cyan-300" />
+                      <Icon className="h-5 w-5 text-lime-300" />
                       <p className="mt-3 text-sm font-semibold text-white">{item.label}</p>
                     </div>
                   );
@@ -270,12 +284,12 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
                 <p className="mt-1 text-sm text-white/54">Quick applications and saved jobs.</p>
               </div>
               <div className="border-b border-white/10 p-5 sm:border-b-0 sm:border-r">
-                <Bell className="h-7 w-7 text-rose-300" />
+                <Bell className="h-7 w-7 text-lime-300" />
                 <p className="mt-3 text-sm font-semibold text-white">Updates before and after</p>
                 <p className="mt-1 text-sm text-white/54">Messages and event notifications.</p>
               </div>
               <div className="p-5">
-                <Sparkles className="h-7 w-7 text-cyan-300" />
+                <Sparkles className="h-7 w-7 text-lime-300" />
                 <p className="mt-3 text-sm font-semibold text-white">Profile hub included</p>
                 <p className="mt-1 text-sm text-white/54">Ratings, earnings, and availability.</p>
               </div>
@@ -372,7 +386,7 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-300">{job.tag}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-lime-300">{job.tag}</p>
                         <p className="mt-2 font-semibold text-white">{job.title}</p>
                         <p className="mt-1 text-sm text-white/54">
                           {job.location} - {job.detail}
@@ -388,7 +402,14 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
             </div>
 
             <div className="mt-5 hidden overflow-hidden rounded-[24px] border border-white/10 sm:block">
-              <img src={DETAIL_IMAGE} alt="Festival stage lights at night." className="h-32 w-full object-cover opacity-82" />
+              <Image
+                src={DETAIL_IMAGE}
+                alt="Festival stage lights at night."
+                width={1200}
+                height={256}
+                sizes="(min-width: 1024px) 50vw, 100vw"
+                className="h-32 w-full object-cover opacity-82"
+              />
             </div>
           </div>
         </div>

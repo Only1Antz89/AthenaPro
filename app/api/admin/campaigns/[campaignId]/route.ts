@@ -6,10 +6,11 @@ import { createCampaignSchema } from "@/lib/validation/campaign";
 
 export async function GET(
   _request: Request,
-  { params }: { params: { campaignId: string } }
+  { params }: { params: Promise<{ campaignId: string }> }
 ) {
   await requireAdmin();
-  const campaign = await getAdminCampaignById(params.campaignId);
+  const { campaignId } = await params;
+  const campaign = await getAdminCampaignById(campaignId);
 
   if (!campaign) {
     return NextResponse.json({ error: "Campaign not found." }, { status: 404 });
@@ -20,11 +21,12 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { campaignId: string } }
+  { params }: { params: Promise<{ campaignId: string }> }
 ) {
   await requireAdmin();
+  const { campaignId } = await params;
   const body = await request.json();
   const payload = createCampaignSchema.parse(body);
-  const campaign = await updateCampaign(params.campaignId, payload);
+  const campaign = await updateCampaign(campaignId, payload);
   return NextResponse.json(campaign);
 }

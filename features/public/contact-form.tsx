@@ -31,6 +31,9 @@ export function ContactForm() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [website, setWebsite] = useState("");
 
   const toggleServiceNeed = (value: string) => {
     setForm((current) => ({
@@ -44,13 +47,12 @@ export function ContactForm() {
   if (submitted) {
     return (
       <Card className="space-y-4">
-        <Badge variant="success">Enquiry staged</Badge>
+        <Badge variant="success">Enquiry sent</Badge>
         <h2 className="font-display text-3xl font-semibold tracking-[-0.04em] text-ink">
-          Intake captured for review.
+          Your brief is with the Athena Pro team.
         </h2>
         <p className="text-base leading-7 text-slate">
-          This form validates and confirms the brief locally. Delivery routing can be connected later without
-          changing the company intake flow.
+          We&apos;ll review the event requirements and reply to the email address you provided.
         </p>
         <Button variant="secondary" onClick={() => setSubmitted(false)}>
           Submit another enquiry
@@ -61,6 +63,17 @@ export function ContactForm() {
 
   return (
     <Card className="space-y-6">
+      <div className="hidden" aria-hidden="true">
+        <label htmlFor="contact-website">Website</label>
+        <input
+          id="contact-website"
+          name="website"
+          tabIndex={-1}
+          autoComplete="off"
+          value={website}
+          onChange={(event) => setWebsite(event.target.value)}
+        />
+      </div>
       <div className="grid gap-4 md:grid-cols-2">
         <Field label="Name" hint={errors.name}>
           <Input
@@ -136,7 +149,8 @@ export function ContactForm() {
       </Field>
 
       <Button
-        onClick={() => {
+        disabled={submitting}
+        onClick={async () => {
           const parsed = contactInquirySchema.safeParse(form);
 
           if (!parsed.success) {
@@ -153,11 +167,32 @@ export function ContactForm() {
           }
 
           setErrors({});
-          setSubmitted(true);
+          setSubmitError(null);
+          setSubmitting(true);
+
+          try {
+            const response = await fetch("/api/contact", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ ...parsed.data, website })
+            });
+            const result = (await response.json()) as { error?: string };
+
+            if (!response.ok) {
+              throw new Error(result.error || "Unable to send the enquiry.");
+            }
+
+            setSubmitted(true);
+          } catch (error) {
+            setSubmitError(error instanceof Error ? error.message : "Unable to send the enquiry.");
+          } finally {
+            setSubmitting(false);
+          }
         }}
       >
-        Submit enquiry
+        {submitting ? "Sending enquiry..." : "Submit enquiry"}
       </Button>
+      {submitError ? <p role="alert" className="text-sm text-red-300">{submitError}</p> : null}
     </Card>
   );
 }

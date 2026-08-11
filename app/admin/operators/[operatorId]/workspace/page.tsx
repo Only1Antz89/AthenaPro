@@ -14,9 +14,10 @@ const ACTIVE_ASSIGNMENT_STATUSES = new Set(["open", "partially_filled", "filled"
 export default async function OperatorWorkspacePreviewPage({
   params
 }: {
-  params: { operatorId: string };
+  params: Promise<{ operatorId: string }>;
 }) {
-  const operator = await getAdminOperatorById(params.operatorId);
+  const { operatorId } = await params;
+  const operator = await getAdminOperatorById(operatorId);
 
   if (!operator) {
     notFound();

@@ -8,9 +8,10 @@ import { getAdminClientById } from "@/lib/queries/clients";
 export default async function ClientDetailPage({
   params
 }: {
-  params: { clientId: string };
+  params: Promise<{ clientId: string }>;
 }) {
-  const client = await getAdminClientById(params.clientId);
+  const { clientId } = await params;
+  const client = await getAdminClientById(clientId);
 
   if (!client) {
     notFound();

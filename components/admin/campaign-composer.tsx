@@ -512,6 +512,9 @@ export function CampaignComposer({
                 <Button
                   variant="secondary"
                   className="gap-2"
+                  // OAuth must use a document navigation so the route handler can
+                  // redirect the browser to Google's authorization endpoint.
+                  // eslint-disable-next-line @next/next/no-location-assign-relative-destination
                   onClick={() => window.location.assign("/api/admin/google/oauth/start")}
                 >
                   <>

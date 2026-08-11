@@ -9,7 +9,7 @@ export async function GET(request: Request) {
   const isSecure = new URL(request.url).protocol === "https:";
   const code = searchParams.get("code");
   const state = searchParams.get("state");
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const expectedState = cookieStore.get("athena_google_oauth_state")?.value;
 
   if (!code || !state || state !== expectedState) {
